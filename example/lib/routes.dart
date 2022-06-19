@@ -3,6 +3,7 @@ import 'package:example/ui/home_page.dart';
 import 'package:example/ui/second_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:turn_page_transition/turn_page_transition.dart';
 
 class Routes {
   const Routes();
@@ -26,7 +27,16 @@ class Routes {
         ),
         GoRoute(
           path: second,
-          builder: (context, state) => const SecondPage(),
+          pageBuilder: (context, state) => CustomTransitionPage(
+            child: const SecondPage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) =>
+                    TurnPageTransitionWidget(
+              animation: animation,
+              color: Colors.greenAccent,
+              child: child,
+            ),
+          ),
         ),
       ],
       errorBuilder: (context, state) => const Scaffold(),

@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp.router(
       title: 'TurnPageTransition Example',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         pageTransitionsTheme: const TurnPageTransitionsTheme(),
         primarySwatch: Colors.blue,

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_page_transitions_builder.dart';
 
 class TurnPageTransitionsTheme extends PageTransitionsTheme {
-  const TurnPageTransitionsTheme({this.overleafColor});
+  const TurnPageTransitionsTheme({this.overleafColor = defaultOverleafColor});
 
-  final Color? overleafColor;
+  final Color overleafColor;
 
   PageTransitionsBuilder get builder =>
-      TurnPageTransitionsBuilder(color: overleafColor ?? Colors.grey);
+      TurnPageTransitionsBuilder(color: overleafColor);
 
   @override
   Widget buildTransitions<T>(

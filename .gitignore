@@ -28,3 +28,7 @@ migrate_working_dir/
 .dart_tool/
 .packages
 build/
+
+example/.fvm/
+example/ios/Flutter/
+example/ios/Podfile.lock
