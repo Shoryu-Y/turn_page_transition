@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
-import 'package:turn_page_transition/src/turn_page_transition_widget.dart';
+import 'package:turn_page_transition/src/turn_page_transition.dart';
 
 class TurnPageRoute<T> extends PageRoute<T> {
   TurnPageRoute({
@@ -57,7 +57,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    return TurnPageTransitionWidget(
+    return TurnPageTransition(
       animation: animation,
       color: overleafColor,
       child: child,

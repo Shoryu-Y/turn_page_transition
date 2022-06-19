@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class TurnPageTransitionWidget extends StatelessWidget {
-  const TurnPageTransitionWidget({
+class TurnPageTransition extends StatelessWidget {
+  const TurnPageTransition({
     super.key,
     required this.animation,
     required this.color,
