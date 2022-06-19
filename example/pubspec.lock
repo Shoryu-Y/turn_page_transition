@@ -185,12 +185,10 @@ packages:
   turn_page_transition:
     dependency: "direct main"
     description:
-      path: "."
-      ref: main
-      resolved-ref: "2d1f77e4877448460cb59a8d96426539c69521eb"
-      url: "https://github.com/Shoryu-Y/turn_page_transition.git"
-    source: git
-    version: "0.0.1"
+      path: ".."
+      relative: true
+    source: path
+    version: "0.1.0"
   vector_math:
     dependency: transitive
     description:

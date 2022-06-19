@@ -1,31 +1,10 @@
 # turn_page_transition
- 
-![RPReplay_Final1655622732](https://user-images.githubusercontent.com/44453803/174470088-18e616cc-26ef-4e7d-aaf6-d1967f974722.gif)
+turn_page_transition provide simple **Page-Turning Transition** to your app.
 
-## Introduction
-to use this package, add the following code to your pubspec.yaml.  
-(Sorry, this is because it has not yet been officially released as a package.)
-```
-turn_page_transition:
-    git:
-      url: https://github.com/Shoryu-Y/turn_page_transition.git
-      ref: main
-```
-for example
-```
-dependencies:
-  flutter:
-    sdk: flutter
+## Demo
+<img src="https://user-images.githubusercontent.com/44453803/174470088-18e616cc-26ef-4e7d-aaf6-d1967f974722.gif" height = 600px>
 
-  go_router: ^3.1.1
-  turn_page_transition:
-    git:
-      url: https://github.com/Shoryu-Y/turn_page_transition.git
-      ref: main
-```
-
-## Case 1: use page-turning transition with Navigator
-
+## Case 1: Use as PageRoute in Navigator
 ```
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -56,7 +35,7 @@ class HomePage extends StatelessWidget {
 }
 ```
 
-## Case 2: unifying page-turning transition by ThemeData
+## Case 2: Unify transition animations by ThemeData
 ```
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -79,7 +58,7 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-## Case 3: use page-turning transition with GoRoute
+## Case 3: Use Page-Turning Transition with GoRoute
 ```
 class Routes {
   const Routes();

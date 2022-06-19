@@ -1,6 +1,6 @@
 name: turn_page_transition
-description: A new Flutter project.
-version: 0.0.1
+description: This package provide simple Page-Turning Transition to your app.
+version: 0.1.0
 homepage: https://github.com/Shoryu-Y
 
 environment:
