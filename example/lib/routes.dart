@@ -31,7 +31,7 @@ class Routes {
             child: const SecondPage(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) =>
-                    TurnPageTransitionWidget(
+                    TurnPageTransition(
               animation: animation,
               color: Colors.greenAccent,
               child: child,
