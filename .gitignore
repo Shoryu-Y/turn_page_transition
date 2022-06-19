@@ -32,3 +32,6 @@ build/
 example/.fvm/
 example/ios/Flutter/
 example/ios/Podfile.lock
+example/ios/Flutter/AppFrameworkInfo.plist
+example/ios/Flutter/Debug.xcconfig
+example/ios/Flutter/Release.xcconfig
