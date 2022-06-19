@@ -82,7 +82,7 @@ class Routes {
         ),
         GoRoute(
           path: second,
-          // use TurnPageTransitionWidget in CustomTransitionPage.
+          // use TurnPageTransition in CustomTransitionPage.
           pageBuilder: (context, state) => CustomTransitionPage(
             child: const SecondPage(),
             transitionsBuilder:

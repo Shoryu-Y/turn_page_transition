@@ -29,6 +29,8 @@ migrate_working_dir/
 .packages
 build/
 
+.fvm
+
 example/.fvm/
 example/ios/Flutter/
 example/ios/Podfile.lock
