@@ -4,7 +4,8 @@ turn_page_transition provide simple **Page-Turning Transition** to your app.
 ## Demo
 <img src="https://user-images.githubusercontent.com/44453803/174470088-18e616cc-26ef-4e7d-aaf6-d1967f974722.gif" height = 600px>
 
-## Case 1: Use as PageRoute in Navigator
+## Usage
+### Case 1: Use as PageRoute in Navigator
 ```
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -35,7 +36,7 @@ class HomePage extends StatelessWidget {
 }
 ```
 
-## Case 2: Unify transition animations by ThemeData
+### Case 2: Unify transition animations by ThemeData
 ```
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
       title: 'TurnPageTransition Example',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // set TurnPageTransitionsTheme() at pageTransitionsTheme argument.
+        // Set TurnPageTransitionsTheme() at pageTransitionsTheme argument.
         pageTransitionsTheme: const TurnPageTransitionsTheme(),
         primarySwatch: Colors.blue,
       ),
@@ -58,7 +59,7 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-## Case 3: Use Page-Turning Transition with GoRoute
+### Case 3: Use Page-Turning Transition with GoRoute
 ```
 class Routes {
   const Routes();
@@ -82,7 +83,7 @@ class Routes {
         ),
         GoRoute(
           path: second,
-          // use TurnPageTransition in CustomTransitionPage.
+          // Use TurnPageTransition in CustomTransitionPage.
           pageBuilder: (context, state) => CustomTransitionPage(
             child: const SecondPage(),
             transitionsBuilder:

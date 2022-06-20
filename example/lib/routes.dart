@@ -33,7 +33,7 @@ class Routes {
                 (context, animation, secondaryAnimation, child) =>
                     TurnPageTransition(
               animation: animation,
-              color: Colors.greenAccent,
+              overleafColor: Colors.greenAccent,
               child: child,
             ),
           ),

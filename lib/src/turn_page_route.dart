@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_page_transition.dart';
 
+/// A modal route that replaces the entire screen with Page-Turning transition.
+/// you can use as [MaterialPageRoute].
+///
+/// example:
+/// ElevatedButton(
+///   onPressed: () => Navigator.of(context).push(
+///     TurnPageRoute(
+///       builder: (context) => const NextPage(),
+///     ),
+///   ),
+///   child: const Text('go to next page'),
+/// ),
 class TurnPageRoute<T> extends PageRoute<T> {
   TurnPageRoute({
     RouteSettings? settings,
@@ -18,6 +30,9 @@ class TurnPageRoute<T> extends PageRoute<T> {
   });
 
   final WidgetBuilder builder;
+
+  /// The color of page backsides
+  /// default Color is [Colors.grey]
   final Color overleafColor;
 
   @override
@@ -59,7 +74,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
   ) {
     return TurnPageTransition(
       animation: animation,
-      color: overleafColor,
+      overleafColor: overleafColor,
       child: child,
     );
   }

@@ -14,6 +14,6 @@ class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    return TurnPageTransition(animation: animation, color: color, child: child);
+    return TurnPageTransition(animation: animation, overleafColor: color, child: child);
   }
 }

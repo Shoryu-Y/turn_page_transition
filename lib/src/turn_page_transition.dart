@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 
+/// The Widget to express Page-Turning animation.
 class TurnPageTransition extends StatelessWidget {
   const TurnPageTransition({
-    super.key,
+    Key? key,
     required this.animation,
-    required this.color,
+    required this.overleafColor,
     required this.child,
-  });
+  }) : super(key: key);
 
   final Animation<double> animation;
-  final Color color;
+
+  /// The color of page backsides
+  /// default Color is [Colors.grey]
+  final Color overleafColor;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      foregroundPainter: _LiningPainter(
+      foregroundPainter: _OverleafPainter(
         animation: animation,
-        color: color,
+        color: overleafColor,
       ),
       child: Align(
         alignment: Alignment.centerRight,
@@ -69,8 +74,8 @@ class _PageTurnClipper extends CustomClipper<Path> {
   }
 }
 
-class _LiningPainter extends CustomPainter {
-  const _LiningPainter({
+class _OverleafPainter extends CustomPainter {
+  const _OverleafPainter({
     required this.animation,
     required this.color,
   });
