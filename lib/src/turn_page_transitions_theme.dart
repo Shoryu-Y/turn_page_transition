@@ -24,7 +24,7 @@ class TurnPageTransitionsTheme extends PageTransitionsTheme {
   final Color overleafColor;
 
   PageTransitionsBuilder get _builder =>
-      TurnPageTransitionsBuilder(color: overleafColor);
+      TurnPageTransitionsBuilder(overleafColor: overleafColor);
 
   @override
   Widget buildTransitions<T>(

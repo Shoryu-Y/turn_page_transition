@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/turn_page_transition.dart';
 
 class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
-  const TurnPageTransitionsBuilder({required this.color});
+  const TurnPageTransitionsBuilder({required this.overleafColor});
 
-  final Color color;
+  final Color overleafColor;
 
   @override
   Widget buildTransitions<T>(
@@ -14,6 +14,10 @@ class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    return TurnPageTransition(animation: animation, overleafColor: color, child: child);
+    return TurnPageTransition(
+      animation: animation,
+      overleafColor: overleafColor,
+      child: child,
+    );
   }
 }
