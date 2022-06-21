@@ -8,6 +8,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final routes = Routes.routes();
@@ -16,7 +17,9 @@ class MyApp extends StatelessWidget {
       title: 'TurnPageTransition Example',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        pageTransitionsTheme: const TurnPageTransitionsTheme(),
+        pageTransitionsTheme: const TurnPageTransitionsTheme(
+          overleafColor: Colors.grey,
+        ),
         primarySwatch: Colors.blue,
       ),
       routeInformationParser: routes.routeInformationParser,
