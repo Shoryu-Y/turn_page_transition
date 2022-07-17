@@ -7,6 +7,11 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final deviceSize = MediaQuery.of(context).size;
+    final ratio = deviceSize.width / deviceSize.height;
+    print('ratio: $ratio, judge: ${ratio < 9 / 16}');
+    final turningPoint = ratio < 9 / 16 ? 0.5 : 0.1;
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -18,6 +23,8 @@ class HomePage extends StatelessWidget {
               onPressed: () => Navigator.of(context).push(
                 TurnPageRoute(
                   overleafColor: Colors.grey,
+                  turningPoint: turningPoint,
+                  transitionDuration: const Duration(seconds: 1),
                   builder: (context) => const FirstPage(),
                 ),
               ),
