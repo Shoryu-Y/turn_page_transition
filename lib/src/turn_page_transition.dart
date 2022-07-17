@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:turn_page_transition/src/const.dart';
 
 /// The Widget to express Page-Turning animation.
 class TurnPageTransition extends StatelessWidget {
-  const TurnPageTransition({
+  TurnPageTransition({
     Key? key,
     required this.animation,
     required this.overleafColor,
+    this.turningPoint,
     required this.child,
-  }) : super(key: key);
+  }) : super(key: key) {
+    assert(
+      turningPoint == null ||
+          turningPoint != null && 0 <= turningPoint! && turningPoint! < 1,
+      'turningPoint must be 0 <= turningPoint < 1',
+    );
+  }
 
   final Animation<double> animation;
 
@@ -15,19 +23,29 @@ class TurnPageTransition extends StatelessWidget {
   /// default Color is [Colors.grey]
   final Color overleafColor;
 
+  /// The point that behavior of the turn-page-animation changes.
+  /// this value must be 0 <= turningPoint < 1
+  final double? turningPoint;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
+    final turningPoint = this.turningPoint ?? defaultTurningPoint;
+
     return CustomPaint(
       foregroundPainter: _OverleafPainter(
         animation: animation,
         color: overleafColor,
+        turningPoint: turningPoint,
       ),
       child: Align(
         alignment: Alignment.centerRight,
         child: ClipPath(
-          clipper: _PageTurnClipper(animation: animation),
+          clipper: _PageTurnClipper(
+            animation: animation,
+            turningPoint: turningPoint,
+          ),
           child: Align(
             alignment: Alignment.centerRight,
             widthFactor: animation.value,
@@ -40,28 +58,50 @@ class TurnPageTransition extends StatelessWidget {
 }
 
 class _PageTurnClipper extends CustomClipper<Path> {
-  const _PageTurnClipper({required this.animation});
+  const _PageTurnClipper({required this.animation, required this.turningPoint});
 
   final Animation<double> animation;
+  final double turningPoint;
 
   @override
   Path getClip(Size size) {
     final width = size.width;
     final height = size.height;
-    final value = animation.value;
+    final animationProgress = animation.value;
 
+    final vVelocity = 1 / turningPoint;
+
+    /// The horizontal distance of turned page top
+    final turnedTopWidth = width;
+
+    final topRightX = turnedTopWidth;
+    const topRightY = 0.0;
+    const topLeftX = 0.0;
+    const topLeftY = 0.0;
     final path = Path()
-      ..moveTo(width, 0)
-      ..lineTo(0, 0);
-    if (value <= 0.5) {
-      final heightValue = value * 2;
+      ..moveTo(topRightX, topRightY)
+      ..lineTo(topLeftX, topLeftY);
+
+    if (animationProgress <= turningPoint) {
+      final bottomX = turnedTopWidth;
+      final bottomY = height * vVelocity * animationProgress;
       path
-        ..lineTo(width, height * heightValue)
+        ..lineTo(bottomX, bottomY)
         ..close();
     } else {
+      final widthCorrected = width / animationProgress;
+      final progressSubtractedDefault = animationProgress - turningPoint;
+      final hVelocity = 1 / (1 - turningPoint);
+      final turnedBottomWidth =
+          widthCorrected * progressSubtractedDefault * hVelocity;
+
+      final bottomLeftX = width - turnedBottomWidth;
+      final bottomLeftY = height;
+      final bottomRightX = width;
+      final bottomRightY = height;
       path
-        ..lineTo(width - width / value * (value - 0.5) * 2, height)
-        ..lineTo(width, height)
+        ..lineTo(bottomLeftX, bottomLeftY) // BottomLeft
+        ..lineTo(bottomRightX, bottomRightY) // BottomRight
         ..close();
     }
 
@@ -78,16 +118,18 @@ class _OverleafPainter extends CustomPainter {
   const _OverleafPainter({
     required this.animation,
     required this.color,
+    required this.turningPoint,
   });
 
   final Animation<double> animation;
   final Color color;
+  final double turningPoint;
 
   @override
   void paint(Canvas canvas, Size size) {
     final width = size.width;
     final height = size.height;
-    final value = animation.value;
+    final animationProgress = animation.value;
 
     final fillPaint = Paint()
       ..color = color
@@ -98,42 +140,73 @@ class _OverleafPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
-    final path = Path()..moveTo(width * (1 - value), 0);
+    final turnedTopX = width * animationProgress;
+    const turnedTopY = 0.0;
+    final path = Path()..moveTo(width - turnedTopX, turnedTopY);
 
-    if (value <= 0.5) {
-      final W = width * value;
-      final H = height * value * 2;
-      final x = width - 2 * (W * H * H) / (W * W + H * H);
-      final y = 2 * (W * W * H) / (W * W + H * H);
+    if (animationProgress <= turningPoint) {
+      final vVelocity = 1 / turningPoint;
+
+      /// The horizontal distance of turned page
+      final W = width * animationProgress;
+
+      /// The vertical distance of turned page
+      final H = height * animationProgress * vVelocity;
+
+      /// Intersection of the line connecting (W, 0) & (W, H) and perpendicular line
+      final intersectionX = (W * H * H) / (W * W + H * H);
+      final intersectionY = (W * W * H) / (W * W + H * H);
+
+      /// Page corner position which is line target point of (W, 0) for the line connecting (W, 0) & (W, H)
+      final cornerX = width - 2 * intersectionX;
+      final cornerY = 2 * intersectionY;
+      final rightCreaseX = width;
+      final rightCreaseY = H;
 
       path
-        ..lineTo(x, y) // ページの角
-        ..lineTo(width, H) // ページの右端
+        ..lineTo(cornerX, cornerY)
+        ..lineTo(rightCreaseX, rightCreaseY)
         ..close();
-    } else if (value < 1) {
-      // alias value to simple letters;
+    } else if (animationProgress < 1) {
+      /// Alias that converts values to simple characters
       final w2 = width * width;
       final h2 = height * height;
-      final mv = 1 - value;
-      final mv2 = mv * mv;
 
-      final x1 = width - 2 * width * h2 * value / (w2 * mv2 + h2);
-      final y1 = 2 * w2 * height * value * mv / (w2 * mv2 + h2);
+      final hVelocity = 1 / (1 - turningPoint);
+      final progressSubtractedDefault = animationProgress - turningPoint;
+      final turnedBottomWidthRate = hVelocity * progressSubtractedDefault;
 
-      final para2 = (2 * value - 1) / value;
-      final x2 = width - 2 * width * h2 * value / (w2 * mv2 + h2) * para2;
-      final y2 = y1 * para2 + height;
+      final q = animationProgress - turnedBottomWidthRate;
+      final q2 = q * q;
+
+      /// Intersection of the line connecting (W, 0) & (W, H) and perpendicular line
+      final intersectionX = width * h2 * animationProgress / (w2 * q2 + h2);
+      final intersectionY =
+          w2 * height * animationProgress * q / (w2 * q2 + h2);
+
+      /// Page corner position which is line target point of (W, 0) for the line connecting (W, 0) & (W, H)
+      final topCornerX = width - 2 * intersectionX;
+      final topCornerY = 2 * intersectionY;
+
+      final intersectionCorrection =
+          (animationProgress - q) / animationProgress;
+      final bottomCornerX = width - 2 * intersectionX * intersectionCorrection;
+      final bottomCornerY = 2 * intersectionY * intersectionCorrection + height;
+
+      final turnedBottomWidth = width * progressSubtractedDefault * hVelocity;
+      final bottomLeftX = width - turnedBottomWidth;
+      final bottomLeftY = height;
 
       path
-        ..lineTo(x1, y1)
-        ..lineTo(x2, y2)
-        ..lineTo(width - width * 2 * (value - 0.5), height)
+        ..lineTo(topCornerX, topCornerY)
+        ..lineTo(bottomCornerX, bottomCornerY)
+        ..lineTo(bottomLeftX, bottomLeftY)
         ..close();
     } else {
       path
         ..lineTo(0, 0)
         ..lineTo(0, height)
-        ..lineTo(width * (1 - value), height)
+        ..lineTo(width * (1 - animationProgress), height)
         ..close();
     }
 
