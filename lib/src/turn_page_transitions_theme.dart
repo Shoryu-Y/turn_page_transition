@@ -17,14 +17,21 @@ import 'package:turn_page_transition/src/turn_page_transitions_builder.dart';
 ///       home: HomePage(),
 ///  )
 class TurnPageTransitionsTheme extends PageTransitionsTheme {
-  const TurnPageTransitionsTheme({this.overleafColor = defaultOverleafColor});
+  const TurnPageTransitionsTheme({
+    this.overleafColor = defaultOverleafColor,
+    this.turningPoint,
+  });
 
   /// The color of page backsides
   /// default Color is [Colors.grey]
   final Color overleafColor;
 
-  PageTransitionsBuilder get _builder =>
-      TurnPageTransitionsBuilder(overleafColor: overleafColor);
+  final double? turningPoint;
+
+  PageTransitionsBuilder get _builder => TurnPageTransitionsBuilder(
+        overleafColor: overleafColor,
+        turningPoint: turningPoint,
+      );
 
   @override
   Widget buildTransitions<T>(

@@ -19,6 +19,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
     RouteSettings? settings,
     required this.builder,
     this.overleafColor = defaultOverleafColor,
+    this.turningPoint,
     this.transitionDuration = defaultTransitionDuration,
     this.reverseTransitionDuration = defaultTransitionDuration,
     this.opaque = true,
@@ -34,6 +35,8 @@ class TurnPageRoute<T> extends PageRoute<T> {
   /// The color of page backsides
   /// default Color is [Colors.grey]
   final Color overleafColor;
+
+  final double? turningPoint;
 
   @override
   final Duration transitionDuration;
@@ -75,6 +78,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
     return TurnPageTransition(
       animation: animation,
       overleafColor: overleafColor,
+      turningPoint: turningPoint,
       child: child,
     );
   }
