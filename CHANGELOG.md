@@ -1,3 +1,6 @@
+## 0.1.3
+- add turningPoint property
+- fix readme
 ## 0.1.2
 - add documentation
 - fix formatting issues

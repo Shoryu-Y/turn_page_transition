@@ -21,8 +21,11 @@ class HomePage extends StatelessWidget {
             const Text('Home Page'),
             ElevatedButton(
               onPressed: () => Navigator.of(context).push(
-                // Use TurnPageRoute instead of MaterialPageRoute.
+              // Use TurnPageRoute instead of MaterialPageRoute.
                 TurnPageRoute(
+                  overleafColor: Colors.grey,
+                  turningPoint: turningPoint,
+                  transitionDuration: const Duration(seconds: 1),
                   builder: (context) => const FirstPage(),
                 ),
               ),
@@ -49,7 +52,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // Set TurnPageTransitionsTheme() at pageTransitionsTheme argument.
-        pageTransitionsTheme: const TurnPageTransitionsTheme(),
+        pageTransitionsTheme: const TurnPageTransitionsTheme(
+          overleafColor: Colors.grey,
+          turningPoint: 0.1,
+        ),
         primarySwatch: Colors.blue,
       ),
       routeInformationParser: routes.routeInformationParser,
@@ -90,7 +96,7 @@ class Routes {
                 (context, animation, secondaryAnimation, child) =>
                     TurnPageTransition(
               animation: animation,
-              color: Colors.greenAccent,
+              overleafColor: Colors.grey,
               child: child,
             ),
           ),
