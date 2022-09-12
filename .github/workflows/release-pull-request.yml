@@ -1,0 +1,19 @@
+name: Publish test
+on:
+  pull_request:
+    branches:
+      - releases/**
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Flutter
+        run: git clone https://github.com/flutter/flutter.git
+      - name: Add path
+        run: echo "$(pwd)/flutter/bin" >> $GITHUB_PATH
+      - name: Pub get
+        run: flutter pub get
+      - name: Publish
+        run: dart pub publish --dry-run
