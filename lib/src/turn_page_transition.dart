@@ -21,14 +21,15 @@ class TurnPageTransition extends StatelessWidget {
 
   final Animation<double> animation;
 
-  /// The color of page backsides
-  /// default Color is [Colors.grey]
+  /// The color of page backsides.
+  /// Default color is [Colors.grey]
   final Color overleafColor;
 
   /// The point that behavior of the turn-page-animation changes.
-  /// this value must be 0 <= turningPoint < 1
+  /// This value must be 0 <= turningPoint < 1.
   final double? turningPoint;
 
+  /// Direction of page turnover.
   final TurnDirection direction;
 
   final Widget child;
@@ -153,6 +154,7 @@ class _PageTurnClipper extends CustomClipper<Path> {
   }
 }
 
+
 class _OverleafPainter extends CustomPainter {
   const _OverleafPainter({
     required this.animation,
@@ -171,15 +173,6 @@ class _OverleafPainter extends CustomPainter {
     final width = size.width;
     final height = size.height;
     final animationProgress = animation.value;
-
-    final fillPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final linePaint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
 
     late final double topCornerX;
     late final double bottomCornerX;
@@ -201,12 +194,12 @@ class _OverleafPainter extends CustomPainter {
     final path = Path()..moveTo(topFold.dx, topFold.dy);
 
     if (animationProgress <= turningPoint) {
-      final vVelocity = 1 / turningPoint;
-      final turnedYDistance = height * animationProgress * vVelocity;
+      final verticalVelocity = 1 / turningPoint;
+      final turnedYDistance = height * animationProgress * verticalVelocity;
 
       final W = turnedXDistance;
       final H = turnedYDistance;
-      // Intersection of the line connecting (W, 0) & (W, H) and perpendicular line
+      // Intersection of the line connecting (W, 0) & (W, H) and perpendicular line.
       final intersectionX = (W * H * H) / (W * W + H * H);
       final intersectionY = (W * W * H) / (W * W + H * H);
 
@@ -228,47 +221,66 @@ class _OverleafPainter extends CustomPainter {
         ..lineTo(bottomFold.dx, bottomFold.dy)
         ..close();
     } else if (animationProgress < 1) {
-      /// Alias that converts values to simple characters
+      final horizontalVelocity = 1 / (1 - turningPoint);
+      final progressSubtractedDefault = animationProgress - turningPoint;
+      final turnedBottomWidthRate =
+          horizontalVelocity * progressSubtractedDefault;
+
+      // Alias that converts values to simple characters. -------
       final w2 = width * width;
       final h2 = height * height;
-
-      final hVelocity = 1 / (1 - turningPoint);
-      final progressSubtractedDefault = animationProgress - turningPoint;
-      final turnedBottomWidthRate = hVelocity * progressSubtractedDefault;
-
       final q = animationProgress - turnedBottomWidthRate;
       final q2 = q * q;
 
-      /// Intersection of the line connecting (W, 0) & (W, H) and perpendicular line
+      // --------------------------------------------------------
+
+      // Page corner position which is line target point of (W, 0) for the line connecting (W, 0) & (W, H).
       final intersectionX = width * h2 * animationProgress / (w2 * q2 + h2);
       final intersectionY =
           w2 * height * animationProgress * q / (w2 * q2 + h2);
 
-      /// Page corner position which is line target point of (W, 0) for the line connecting (W, 0) & (W, H)
-      final topCornerX = width - 2 * intersectionX;
-      final topCornerY = 2 * intersectionY;
-
       final intersectionCorrection =
           (animationProgress - q) / animationProgress;
-      final bottomCornerX = width - 2 * intersectionX * intersectionCorrection;
-      final bottomCornerY = 2 * intersectionY * intersectionCorrection + height;
 
-      final turnedBottomWidth = width * progressSubtractedDefault * hVelocity;
-      final bottomLeftX = width - turnedBottomWidth;
-      final bottomLeftY = height;
+      final turnedBottomWidth =
+          width * progressSubtractedDefault * horizontalVelocity;
+
+      switch (direction) {
+        case TurnDirection.rightToLeft:
+          topCornerX = width - 2 * intersectionX;
+          bottomCornerX = width - 2 * intersectionX * intersectionCorrection;
+          bottomFoldX = width - turnedBottomWidth;
+          break;
+        case TurnDirection.leftToRight:
+          topCornerX = 2 * intersectionX;
+          bottomCornerX = 2 * intersectionX * intersectionCorrection;
+          bottomFoldX = turnedBottomWidth;
+          break;
+      }
+      final topCorner = Offset(topCornerX, 2 * intersectionY);
+      final bottomCorner = Offset(
+        bottomCornerX,
+        2 * intersectionY * intersectionCorrection + height,
+      );
+      final bottomFold = Offset(bottomFoldX, height);
 
       path
-        ..lineTo(topCornerX, topCornerY)
-        ..lineTo(bottomCornerX, bottomCornerY)
-        ..lineTo(bottomLeftX, bottomLeftY)
+        ..lineTo(topCorner.dx, topCorner.dy)
+        ..lineTo(bottomCorner.dx, bottomCorner.dy)
+        ..lineTo(bottomFold.dx, bottomFold.dy)
         ..close();
     } else {
-      path
-        ..lineTo(0, 0)
-        ..lineTo(0, height)
-        ..lineTo(width * (1 - animationProgress), height)
-        ..close();
+      path.reset();
     }
+
+    final fillPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final linePaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
 
     canvas
       ..drawPath(path, fillPaint)
