@@ -9,7 +9,7 @@ class TurnPageTransition extends StatelessWidget {
     required this.animation,
     required this.overleafColor,
     this.turningPoint,
-    this.direction = TurnDirection.leftToRight,
+    this.direction = TurnDirection.rightToLeft,
     required this.child,
   }) : super(key: key) {
     assert(

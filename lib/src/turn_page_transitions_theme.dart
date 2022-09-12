@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
+import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_transitions_builder.dart';
 
 /// A Theme of transition animation.
@@ -20,6 +21,7 @@ class TurnPageTransitionsTheme extends PageTransitionsTheme {
   const TurnPageTransitionsTheme({
     this.overleafColor = defaultOverleafColor,
     this.turningPoint,
+    this.direction = TurnDirection.rightToLeft,
   });
 
   /// The color of page backsides
@@ -28,9 +30,12 @@ class TurnPageTransitionsTheme extends PageTransitionsTheme {
 
   final double? turningPoint;
 
+  final TurnDirection direction;
+
   PageTransitionsBuilder get _builder => TurnPageTransitionsBuilder(
         overleafColor: overleafColor,
         turningPoint: turningPoint,
+        direction: direction,
       );
 
   @override

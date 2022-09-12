@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
+import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_transition.dart';
 
 /// A modal route that replaces the entire screen with Page-Turning transition.
@@ -20,6 +21,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
     required this.builder,
     this.overleafColor = defaultOverleafColor,
     this.turningPoint,
+    this.direction = TurnDirection.rightToLeft,
     this.transitionDuration = defaultTransitionDuration,
     this.reverseTransitionDuration = defaultTransitionDuration,
     this.opaque = true,
@@ -37,6 +39,8 @@ class TurnPageRoute<T> extends PageRoute<T> {
   final Color overleafColor;
 
   final double? turningPoint;
+
+  final TurnDirection direction;
 
   @override
   final Duration transitionDuration;
@@ -79,6 +83,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
       animation: animation,
       overleafColor: overleafColor,
       turningPoint: turningPoint,
+      direction: direction,
       child: child,
     );
   }
