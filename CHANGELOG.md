@@ -1,3 +1,6 @@
+## 0.2.0
+- add direction property
+  Turn-page used to be only right-to-left is now also possible left-to-right.
 ## 0.1.3
 - add turningPoint property
 - fix readme
