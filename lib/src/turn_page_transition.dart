@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
+import 'package:turn_page_transition/src/turn_direction.dart';
 
 /// The Widget to express Page-Turning animation.
 class TurnPageTransition extends StatelessWidget {
@@ -8,6 +9,7 @@ class TurnPageTransition extends StatelessWidget {
     required this.animation,
     required this.overleafColor,
     this.turningPoint,
+    this.direction = TurnDirection.leftToRight,
     required this.child,
   }) : super(key: key) {
     assert(
@@ -27,27 +29,35 @@ class TurnPageTransition extends StatelessWidget {
   /// this value must be 0 <= turningPoint < 1
   final double? turningPoint;
 
+  final TurnDirection direction;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final turningPoint = this.turningPoint ?? defaultTurningPoint;
 
+    final alignment = direction == TurnDirection.rightToLeft
+        ? Alignment.centerRight
+        : Alignment.centerLeft;
+
     return CustomPaint(
       foregroundPainter: _OverleafPainter(
         animation: animation,
         color: overleafColor,
         turningPoint: turningPoint,
+        direction: direction,
       ),
       child: Align(
-        alignment: Alignment.centerRight,
+        alignment: alignment,
         child: ClipPath(
           clipper: _PageTurnClipper(
             animation: animation,
             turningPoint: turningPoint,
+            direction: direction,
           ),
           child: Align(
-            alignment: Alignment.centerRight,
+            alignment: alignment,
             widthFactor: animation.value,
             child: child,
           ),
@@ -58,10 +68,15 @@ class TurnPageTransition extends StatelessWidget {
 }
 
 class _PageTurnClipper extends CustomClipper<Path> {
-  const _PageTurnClipper({required this.animation, required this.turningPoint});
+  const _PageTurnClipper({
+    required this.animation,
+    required this.turningPoint,
+    this.direction = TurnDirection.leftToRight,
+  });
 
   final Animation<double> animation;
   final double turningPoint;
+  final TurnDirection direction;
 
   @override
   Path getClip(Size size) {
@@ -69,39 +84,63 @@ class _PageTurnClipper extends CustomClipper<Path> {
     final height = size.height;
     final animationProgress = animation.value;
 
-    final vVelocity = 1 / turningPoint;
+    final verticalVelocity = 1 / turningPoint;
 
     /// The horizontal distance of turned page top
     final turnedTopWidth = width;
 
-    final topRightX = turnedTopWidth;
-    const topRightY = 0.0;
-    const topLeftX = 0.0;
-    const topLeftY = 0.0;
+    late final double topCornerX;
+    late final double bottomCornerX;
+    late final double topFoldX;
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        topCornerX = turnedTopWidth;
+        topFoldX = 0.0;
+        bottomCornerX = turnedTopWidth;
+        break;
+      case TurnDirection.leftToRight:
+        topCornerX = 0.0;
+        topFoldX = turnedTopWidth;
+        bottomCornerX = 0.0;
+        break;
+    }
+
+    final topCorner = Offset(topCornerX, 0.0);
+    final topFold = Offset(topFoldX, 0.0);
+
     final path = Path()
-      ..moveTo(topRightX, topRightY)
-      ..lineTo(topLeftX, topLeftY);
+      ..moveTo(topCorner.dx, topCorner.dy)
+      ..lineTo(topFold.dx, topFold.dy);
 
     if (animationProgress <= turningPoint) {
-      final bottomX = turnedTopWidth;
-      final bottomY = height * vVelocity * animationProgress;
+      final bottomCornerY = height * verticalVelocity * animationProgress;
+      final bottomCorner = Offset(bottomCornerX, bottomCornerY);
       path
-        ..lineTo(bottomX, bottomY)
+        ..lineTo(bottomCorner.dx, bottomCorner.dy)
         ..close();
     } else {
       final widthCorrected = width / animationProgress;
       final progressSubtractedDefault = animationProgress - turningPoint;
-      final hVelocity = 1 / (1 - turningPoint);
+      final horizontalVelocity = 1 / (1 - turningPoint);
       final turnedBottomWidth =
-          widthCorrected * progressSubtractedDefault * hVelocity;
+          widthCorrected * progressSubtractedDefault * horizontalVelocity;
 
-      final bottomLeftX = width - turnedBottomWidth;
-      final bottomLeftY = height;
-      final bottomRightX = width;
-      final bottomRightY = height;
+      late final double bottomFoldX;
+      switch (direction) {
+        case TurnDirection.rightToLeft:
+          bottomFoldX = width - turnedBottomWidth;
+          break;
+        case TurnDirection.leftToRight:
+          bottomFoldX = turnedBottomWidth;
+          break;
+      }
+
+      final bottomCorner = Offset(bottomCornerX, height);
+      final bottomFold = Offset(bottomFoldX, height);
+
       path
-        ..lineTo(bottomLeftX, bottomLeftY) // BottomLeft
-        ..lineTo(bottomRightX, bottomRightY) // BottomRight
+        ..lineTo(bottomFold.dx, bottomFold.dy) // BottomLeft
+        ..lineTo(bottomCorner.dx, bottomCorner.dy) // BottomRight
         ..close();
     }
 
@@ -109,7 +148,7 @@ class _PageTurnClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
+  bool shouldReclip(_PageTurnClipper oldClipper) {
     return false;
   }
 }
@@ -119,11 +158,13 @@ class _OverleafPainter extends CustomPainter {
     required this.animation,
     required this.color,
     required this.turningPoint,
+    required this.direction,
   });
 
   final Animation<double> animation;
   final Color color;
   final double turningPoint;
+  final TurnDirection direction;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -140,32 +181,51 @@ class _OverleafPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
-    final turnedTopX = width * animationProgress;
-    const turnedTopY = 0.0;
-    final path = Path()..moveTo(width - turnedTopX, turnedTopY);
+    late final double topCornerX;
+    late final double bottomCornerX;
+    late final double topFoldX;
+    late final double bottomFoldX;
+
+    final turnedXDistance = width * animationProgress;
+
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        topFoldX = width - turnedXDistance;
+        break;
+      case TurnDirection.leftToRight:
+        topFoldX = turnedXDistance;
+        break;
+    }
+    final topFold = Offset(topFoldX, 0.0);
+
+    final path = Path()..moveTo(topFold.dx, topFold.dy);
 
     if (animationProgress <= turningPoint) {
       final vVelocity = 1 / turningPoint;
+      final turnedYDistance = height * animationProgress * vVelocity;
 
-      /// The horizontal distance of turned page
-      final W = width * animationProgress;
-
-      /// The vertical distance of turned page
-      final H = height * animationProgress * vVelocity;
-
-      /// Intersection of the line connecting (W, 0) & (W, H) and perpendicular line
+      final W = turnedXDistance;
+      final H = turnedYDistance;
+      // Intersection of the line connecting (W, 0) & (W, H) and perpendicular line
       final intersectionX = (W * H * H) / (W * W + H * H);
       final intersectionY = (W * W * H) / (W * W + H * H);
 
-      /// Page corner position which is line target point of (W, 0) for the line connecting (W, 0) & (W, H)
-      final cornerX = width - 2 * intersectionX;
-      final cornerY = 2 * intersectionY;
-      final rightCreaseX = width;
-      final rightCreaseY = H;
+      switch (direction) {
+        case TurnDirection.rightToLeft:
+          topCornerX = width - 2 * intersectionX;
+          bottomFoldX = width;
+          break;
+        case TurnDirection.leftToRight:
+          topCornerX = 2 * intersectionX;
+          bottomFoldX = 0.0;
+          break;
+      }
+      final topCorner = Offset(topCornerX, 2 * intersectionY);
+      final bottomFold = Offset(bottomFoldX, turnedYDistance);
 
       path
-        ..lineTo(cornerX, cornerY)
-        ..lineTo(rightCreaseX, rightCreaseY)
+        ..lineTo(topCorner.dx, topCorner.dy)
+        ..lineTo(bottomFold.dx, bottomFold.dy)
         ..close();
     } else if (animationProgress < 1) {
       /// Alias that converts values to simple characters
