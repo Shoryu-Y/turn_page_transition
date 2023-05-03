@@ -2,41 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 
-/// The Widget to express Page-Turning animation.
+/// A widget that provides a page-turning animation.
 class TurnPageTransition extends StatelessWidget {
   TurnPageTransition({
     Key? key,
     required this.animation,
     required this.overleafColor,
-    this.turningPoint,
+    @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
+    this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
     required this.child,
   }) : super(key: key) {
+    final transitionPoint = animationTransitionPoint ?? turningPoint;
     assert(
-      turningPoint == null ||
-          turningPoint != null && 0 <= turningPoint! && turningPoint! < 1,
-      'turningPoint must be 0 <= turningPoint < 1',
+      transitionPoint == null || 0 <= transitionPoint && transitionPoint < 1,
+      'animationTransitionPoint must be 0 <= animationTransitionPoint < 1',
     );
   }
 
+  /// The animation that controls the page-turning effect.
   final Animation<double> animation;
 
-  /// The color of page backsides.
-  /// Default color is [Colors.grey]
+  /// The color of the backside of the pages.
+  /// Default color is [Colors.grey].
   final Color overleafColor;
 
-  /// The point that behavior of the turn-page-animation changes.
-  /// This value must be 0 <= turningPoint < 1.
+  /// The point at which the page-turning animation behavior changes.
+  /// This value must be between 0 and 1 (0 <= turningPoint < 1).
+  @Deprecated('Use animationTransitionPoint instead')
   final double? turningPoint;
 
-  /// Direction of page turnover.
+  /// The point that behavior of the turn-page-animation changes.
+  /// This value must be 0 <= animationTransitionPoint < 1.
+  final double? animationTransitionPoint;
+
+  /// The direction in which the pages are turned.
   final TurnDirection direction;
 
+  /// The widget that is displayed with the page-turning animation.
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final turningPoint = this.turningPoint ?? defaultTurningPoint;
+    final transitionPoint = this.animationTransitionPoint ??
+        this.turningPoint ??
+        defaultAnimationTransitionPoint;
 
     final alignment = direction == TurnDirection.rightToLeft
         ? Alignment.centerRight
@@ -46,7 +56,7 @@ class TurnPageTransition extends StatelessWidget {
       foregroundPainter: _OverleafPainter(
         animation: animation,
         color: overleafColor,
-        turningPoint: turningPoint,
+        animationTransitionPoint: transitionPoint,
         direction: direction,
       ),
       child: Align(
@@ -54,7 +64,7 @@ class TurnPageTransition extends StatelessWidget {
         child: ClipPath(
           clipper: _PageTurnClipper(
             animation: animation,
-            turningPoint: turningPoint,
+            animationTransitionPoint: transitionPoint,
             direction: direction,
           ),
           child: Align(
@@ -68,24 +78,32 @@ class TurnPageTransition extends StatelessWidget {
   }
 }
 
+/// CustomClipper that creates the page-turning clipping path.
 class _PageTurnClipper extends CustomClipper<Path> {
   const _PageTurnClipper({
     required this.animation,
-    required this.turningPoint,
+    required this.animationTransitionPoint,
     this.direction = TurnDirection.leftToRight,
   });
 
+  /// The animation that controls the page-turning effect.
   final Animation<double> animation;
-  final double turningPoint;
+
+  /// The point at which the page-turning animation behavior changes.
+  /// This value must be between 0 and 1 (0 <= animationTransitionPoint < 1).
+  final double animationTransitionPoint;
+
+  /// The direction in which the pages are turned.
   final TurnDirection direction;
 
+  /// Creates the clipping path based on the animation progress and direction.
   @override
   Path getClip(Size size) {
     final width = size.width;
     final height = size.height;
     final animationProgress = animation.value;
 
-    final verticalVelocity = 1 / turningPoint;
+    final verticalVelocity = 1 / animationTransitionPoint;
 
     /// The horizontal distance of turned page top
     final turnedTopWidth = width;
@@ -113,7 +131,7 @@ class _PageTurnClipper extends CustomClipper<Path> {
       ..moveTo(topCorner.dx, topCorner.dy)
       ..lineTo(topFold.dx, topFold.dy);
 
-    if (animationProgress <= turningPoint) {
+    if (animationProgress <= animationTransitionPoint) {
       final bottomCornerY = height * verticalVelocity * animationProgress;
       final bottomCorner = Offset(bottomCornerX, bottomCornerY);
       path
@@ -121,8 +139,9 @@ class _PageTurnClipper extends CustomClipper<Path> {
         ..close();
     } else {
       final widthCorrected = width / animationProgress;
-      final progressSubtractedDefault = animationProgress - turningPoint;
-      final horizontalVelocity = 1 / (1 - turningPoint);
+      final progressSubtractedDefault =
+          animationProgress - animationTransitionPoint;
+      final horizontalVelocity = 1 / (1 - animationTransitionPoint);
       final turnedBottomWidth =
           widthCorrected * progressSubtractedDefault * horizontalVelocity;
 
@@ -148,26 +167,36 @@ class _PageTurnClipper extends CustomClipper<Path> {
     return path;
   }
 
+  /// Determines if the clipper should be updated based on the old clipper.
   @override
   bool shouldReclip(_PageTurnClipper oldClipper) {
-    return false;
+    return oldClipper.animation.value != animation.value;
   }
 }
 
-
+/// CustomPainter that paints the backside of the pages during the animation.
 class _OverleafPainter extends CustomPainter {
   const _OverleafPainter({
     required this.animation,
     required this.color,
-    required this.turningPoint,
+    required this.animationTransitionPoint,
     required this.direction,
   });
 
+  /// The animation that controls the page-turning effect.
   final Animation<double> animation;
+
+  /// The color of the backside of the pages.
   final Color color;
-  final double turningPoint;
+
+  /// The point at which the page-turning animation behavior changes.
+  /// This value must be between 0 and 1 (0 <= animationTransitionPoint < 1).
+  final double animationTransitionPoint;
+
+  /// The direction in which the pages are turned.
   final TurnDirection direction;
 
+  /// Paints the backside of the pages on the canvas based on the animation progress and direction.
   @override
   void paint(Canvas canvas, Size size) {
     final width = size.width;
@@ -193,8 +222,8 @@ class _OverleafPainter extends CustomPainter {
 
     final path = Path()..moveTo(topFold.dx, topFold.dy);
 
-    if (animationProgress <= turningPoint) {
-      final verticalVelocity = 1 / turningPoint;
+    if (animationProgress <= animationTransitionPoint) {
+      final verticalVelocity = 1 / animationTransitionPoint;
       final turnedYDistance = height * animationProgress * verticalVelocity;
 
       final W = turnedXDistance;
@@ -221,8 +250,9 @@ class _OverleafPainter extends CustomPainter {
         ..lineTo(bottomFold.dx, bottomFold.dy)
         ..close();
     } else if (animationProgress < 1) {
-      final horizontalVelocity = 1 / (1 - turningPoint);
-      final progressSubtractedDefault = animationProgress - turningPoint;
+      final horizontalVelocity = 1 / (1 - animationTransitionPoint);
+      final progressSubtractedDefault =
+          animationProgress - animationTransitionPoint;
       final turnedBottomWidthRate =
           horizontalVelocity * progressSubtractedDefault;
 
@@ -287,8 +317,9 @@ class _OverleafPainter extends CustomPainter {
       ..drawPath(path, linePaint);
   }
 
+  /// Determines if the painter should be repainted based on the old delegate.
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+  bool shouldRepaint(_OverleafPainter oldPainter) {
+    return oldPainter.animation.value != animation.value;
   }
 }

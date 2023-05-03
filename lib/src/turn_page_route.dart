@@ -3,10 +3,10 @@ import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_transition.dart';
 
-/// A modal route that replaces the entire screen with Page-Turning transition.
-/// you can use as [MaterialPageRoute].
+/// A modal route that replaces the entire screen with a Page-Turning transition.
+/// You can use it as a [MaterialPageRoute] replacement.
 ///
-/// example:
+/// Example usage:
 /// ElevatedButton(
 ///   onPressed: () => Navigator.of(context).push(
 ///     TurnPageRoute(
@@ -20,7 +20,8 @@ class TurnPageRoute<T> extends PageRoute<T> {
     RouteSettings? settings,
     required this.builder,
     this.overleafColor = defaultOverleafColor,
-    this.turningPoint,
+    @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
+    this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
     this.transitionDuration = defaultTransitionDuration,
     this.reverseTransitionDuration = defaultTransitionDuration,
@@ -32,14 +33,21 @@ class TurnPageRoute<T> extends PageRoute<T> {
     bool fullscreenDialog = false,
   });
 
+  /// The builder function to create the target widget.
   final WidgetBuilder builder;
 
-  /// The color of page backsides
-  /// default Color is [Colors.grey]
+  /// The color of the page backsides.
+  /// Default color is [Colors.grey].
   final Color overleafColor;
 
+  @Deprecated('Use animationTransitionPoint instead')
   final double? turningPoint;
 
+  /// The point that behavior of the turn-page-animation changes.
+  /// This value must be 0 <= animationTransitionPoint < 1.
+  final double? animationTransitionPoint;
+
+  /// The direction in which the pages are turned.
   final TurnDirection direction;
 
   @override
@@ -79,10 +87,12 @@ class TurnPageRoute<T> extends PageRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
+    final transitionPoint = animationTransitionPoint ?? turningPoint;
+
     return TurnPageTransition(
       animation: animation,
       overleafColor: overleafColor,
-      turningPoint: turningPoint,
+      animationTransitionPoint: transitionPoint,
       direction: direction,
       child: child,
     );
