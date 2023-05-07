@@ -6,6 +6,7 @@ export 'package:turn_page_transition/src/turn_page_transition.dart'
     show TurnPageTransition;
 export 'package:turn_page_transition/src/turn_page_animation.dart'
     show TurnPageAnimation;
-export 'package:turn_page_transition/src/turn_page_view.dart' show TurnPageView;
+export 'package:turn_page_transition/src/turn_page_view.dart'
+    show TurnPageView, TurnPageController;
 export 'package:turn_page_transition/src/turn_direction.dart'
     show TurnDirection;

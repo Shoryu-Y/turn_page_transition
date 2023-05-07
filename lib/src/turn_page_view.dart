@@ -1,32 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:turn_page_transition/src/const.dart' as Const;
+import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_animation.dart';
 
+final _defaultPageController = TurnPageController(
+  initialPage: 0,
+);
+
+const _defaultThresholdValue = 0.3;
+
 class TurnPageView extends StatefulWidget {
-  const TurnPageView({
+  TurnPageView.builder({
     Key? key,
+    TurnPageController? controller,
     required this.itemCount,
     required this.itemBuilder,
     this.overleafColorBuilder,
-    this.direction = TurnDirection.rightToLeft,
-    this.initialPage = 0,
-    this.thresholdValue = Const.defaultThresholdValue,
-    this.duration = Const.defaultTransitionDuration,
+    this.animationTransitionPoint = defaultAnimationTransitionPoint,
     this.useOnTap = true,
     this.useOnSwipe = true,
   })  : assert(itemCount > 0),
-        assert(0 <= initialPage && initialPage < itemCount),
-        assert(0 <= thresholdValue && thresholdValue <= 1),
+        controller = controller ?? _defaultPageController,
         super(key: key);
 
+  final TurnPageController controller;
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
   final Color Function(int index)? overleafColorBuilder;
-  final TurnDirection direction;
-  final int initialPage;
-  final double thresholdValue;
-  final Duration duration;
+  final double animationTransitionPoint;
   final bool useOnTap;
   final bool useOnSwipe;
 
@@ -36,35 +37,35 @@ class TurnPageView extends StatefulWidget {
 
 class _TurnPageViewState extends State<TurnPageView>
     with TickerProviderStateMixin {
-  late final TurnAnimationController controller;
   late final List<Widget> pages;
-  bool? isTurnForward;
 
   @override
   void initState() {
     super.initState();
-    controller = TurnAnimationController(
+    widget.controller.animation = TurnAnimationController(
       vsync: this,
-      initialPage: widget.initialPage,
+      initialPage: widget.controller.initialPage,
       itemCount: widget.itemCount,
-      thresholdValue: widget.thresholdValue,
-      duration: widget.duration,
+      thresholdValue: widget.controller.thresholdValue,
+      duration: widget.controller.duration,
     );
 
     pages = List.generate(
       widget.itemCount,
       (index) {
         final pageIndex = (widget.itemCount - 1) - index;
-        final controller = this.controller.controllers[pageIndex];
+        final animation = widget.controller.animation.controllers[pageIndex];
         final page = widget.itemBuilder(context, pageIndex);
 
         return AnimatedBuilder(
-          animation: controller,
+          animation: animation,
           child: page,
           builder: (context, child) => TurnPageAnimation(
-            animation: controller,
+            animation: animation,
             overleafColor: widget.overleafColorBuilder?.call(pageIndex) ??
-                Const.defaultOverleafColor,
+                defaultOverleafColor,
+            animationTransitionPoint: widget.animationTransitionPoint,
+            direction: widget.controller.direction,
             child: child ?? page,
           ),
         );
@@ -74,98 +75,155 @@ class _TurnPageViewState extends State<TurnPageView>
 
   @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
+
     return LayoutBuilder(
-      builder: (context, constraint) => GestureDetector(
-        onTapUp: (detail) async {
+      builder: (context, constraints) => GestureDetector(
+        onTapUp: (details) async {
           if (!widget.useOnTap) {
             return;
           }
-
-          final isLeftSideTapped =
-              detail.localPosition.dx <= constraint.maxWidth / 2;
-          switch (widget.direction) {
-            case TurnDirection.rightToLeft:
-              isLeftSideTapped
-                  ? await controller.turnBackward()
-                  : await controller.turnForward();
-              break;
-            case TurnDirection.leftToRight:
-              isLeftSideTapped
-                  ? await controller.turnForward()
-                  : await controller.turnBackward();
-              break;
-          }
+          controller.onTapUp(
+            details: details,
+            constraints: constraints,
+          );
         },
-        onHorizontalDragUpdate: (detail) {
+        onHorizontalDragUpdate: (details) {
           if (!widget.useOnSwipe) {
             return;
           }
-
-          final width = constraint.maxWidth;
-          late final double delta;
-          switch (widget.direction) {
-            case TurnDirection.rightToLeft:
-              delta = -(detail.primaryDelta ?? 0) / width;
-              break;
-            case TurnDirection.leftToRight:
-              delta = detail.primaryDelta ?? 0 / width;
-              break;
-          }
-
-          if (this.isTurnForward == null) {
-            this.isTurnForward = delta >= 0;
-          }
-          final isTurnForward =
-              this.isTurnForward != null ? this.isTurnForward! : delta >= 0;
-
-          if (isTurnForward) {
-            final currentPageController = controller.currentPage;
-            if (currentPageController == null) {
-              return;
-            }
-            var updated = currentPageController.value + delta;
-            if (updated <= 0.0) {
-              updated = 0.0;
-            } else if (updated >= 1.0) {
-              updated = 1.0;
-            }
-            setState(() {
-              controller.updateCurrentPage(updated);
-            });
-          } else {
-            final previousPageController = controller.previousPage;
-            if (previousPageController == null) {
-              return;
-            }
-            var updated = previousPageController.value + delta;
-            if (updated <= 0.0) {
-              updated = 0.0;
-            } else if (updated >= 1.0) {
-              updated = 1.0;
-            }
-            setState(() {
-              controller.updatePreviousPage(updated);
-            });
-          }
+          controller.onHorizontalDragUpdate(
+            details: details,
+            constraints: constraints,
+          );
         },
-        onHorizontalDragEnd: (detail) {
-          if (!controller.thresholdExceeded) {
-            controller.reverse();
-          } else {
-            if (isTurnForward == true) {
-              controller.turnForward();
-            }
-            if (isTurnForward == false) {
-              controller.turnBackward();
-            }
+        onHorizontalDragEnd: (_) {
+          if (!widget.useOnSwipe) {
+            return;
           }
-          isTurnForward = null;
+          controller.onHorizontalDragEnd();
         },
         child: Stack(
           children: pages,
         ),
       ),
     );
+  }
+}
+
+class TurnPageController extends ChangeNotifier {
+  final int initialPage;
+  final TurnDirection direction;
+  final double thresholdValue;
+  final Duration duration;
+
+  TurnPageController({
+    this.initialPage = 0,
+    this.direction = TurnDirection.rightToLeft,
+    this.thresholdValue = _defaultThresholdValue,
+    this.duration = defaultTransitionDuration,
+  }) : assert(0 <= thresholdValue && thresholdValue <= 1);
+
+  late TurnAnimationController animation;
+
+  bool? isTurnForward;
+
+  void dispose() {
+    super.dispose();
+    animation.dispose();
+  }
+
+  Future<void> nextPage() => animation.turnNextPage();
+
+  Future<void> previousPage() => animation.turnPreviousPage();
+
+  Future<void> animateToPage(int index) async {
+    final diff = index - animation.currentIndex;
+    for (var i = 0; i < diff.abs(); i++) {
+      diff >= 0 ? animation.turnNextPage() : animation.turnPreviousPage();
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+  }
+
+  void onTapUp({
+    required TapUpDetails details,
+    required BoxConstraints constraints,
+  }) {
+    final isLeftSideTapped =
+        details.localPosition.dx <= constraints.maxWidth / 2;
+
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        isLeftSideTapped ? previousPage() : nextPage();
+        break;
+      case TurnDirection.leftToRight:
+        isLeftSideTapped ? nextPage() : previousPage();
+        break;
+    }
+  }
+
+  void onHorizontalDragUpdate({
+    required DragUpdateDetails details,
+    required BoxConstraints constraints,
+  }) {
+    final width = constraints.maxWidth;
+    late final double delta;
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        delta = -(details.primaryDelta ?? 0) / width;
+        break;
+      case TurnDirection.leftToRight:
+        delta = (details.primaryDelta ?? 0) / width;
+        break;
+    }
+
+    if (this.isTurnForward == null) {
+      this.isTurnForward = delta >= 0;
+    }
+    final isTurnForward =
+        this.isTurnForward != null ? this.isTurnForward! : delta >= 0;
+
+    if (isTurnForward) {
+      final currentPageController = animation.currentPage;
+      if (currentPageController == null) {
+        return;
+      }
+      var updated = currentPageController.value + delta;
+      if (updated <= 0.0) {
+        updated = 0.0;
+      } else if (updated >= 1.0) {
+        updated = 1.0;
+      }
+      animation.updateCurrentPage(updated);
+      notifyListeners();
+    } else {
+      final previousPageController = animation.previousPage;
+      if (previousPageController == null) {
+        return;
+      }
+      var updated = previousPageController.value + delta;
+      if (updated <= 0.0) {
+        updated = 0.0;
+      } else if (updated >= 1.0) {
+        updated = 1.0;
+      }
+      animation.updatePreviousPage(updated);
+      notifyListeners();
+    }
+  }
+
+  void onHorizontalDragEnd() {
+    if (!animation.thresholdExceeded) {
+      animation.reverse();
+    } else {
+      if (isTurnForward == true) {
+        nextPage();
+      }
+      if (isTurnForward == false) {
+        previousPage();
+      }
+    }
+    isTurnForward = null;
   }
 }
 
@@ -217,7 +275,7 @@ class TurnAnimationController {
 
   void dispose() {
     for (final controller in controllers) {
-      controller.dispose;
+      controller.dispose();
     }
   }
 
@@ -244,19 +302,19 @@ class TurnAnimationController {
     previousPage?.value = value;
   }
 
-  Future<void> turnForward() async {
+  Future<void> turnNextPage() async {
     if (isNextPageNone) {
       return;
     }
-    await currentPage?.animateTo(_animationMaxValue);
+    currentPage?.animateTo(_animationMaxValue);
     currentIndex++;
   }
 
-  Future<void> turnBackward() async {
+  Future<void> turnPreviousPage() async {
     if (isPreviousPageNone) {
       return;
     }
-    await previousPage?.animateTo(_animationMinValue);
+    previousPage?.animateTo(_animationMinValue);
     currentIndex--;
   }
 }
