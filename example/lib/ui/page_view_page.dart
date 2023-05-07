@@ -38,7 +38,7 @@ class PageViewPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          controller.animateToPage(5);
+          controller.jumpToPage(5);
         },
         child: const Text('>>'),
       ),

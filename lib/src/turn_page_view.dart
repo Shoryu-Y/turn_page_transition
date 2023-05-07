@@ -83,7 +83,7 @@ class _TurnPageViewState extends State<TurnPageView>
           if (!widget.useOnTap) {
             return;
           }
-          controller.onTapUp(
+          controller._onTapUp(
             details: details,
             constraints: constraints,
           );
@@ -92,7 +92,7 @@ class _TurnPageViewState extends State<TurnPageView>
           if (!widget.useOnSwipe) {
             return;
           }
-          controller.onHorizontalDragUpdate(
+          controller._onHorizontalDragUpdate(
             details: details,
             constraints: constraints,
           );
@@ -101,7 +101,7 @@ class _TurnPageViewState extends State<TurnPageView>
           if (!widget.useOnSwipe) {
             return;
           }
-          controller.onHorizontalDragEnd();
+          controller._onHorizontalDragEnd();
         },
         child: Stack(
           children: pages,
@@ -126,6 +126,8 @@ class TurnPageController extends ChangeNotifier {
 
   late TurnAnimationController animation;
 
+  int get currentIndex => animation.currentIndex;
+
   bool? isTurnForward;
 
   void dispose() {
@@ -133,9 +135,9 @@ class TurnPageController extends ChangeNotifier {
     animation.dispose();
   }
 
-  Future<void> nextPage() => animation.turnNextPage();
+  void nextPage() => animation.turnNextPage();
 
-  Future<void> previousPage() => animation.turnPreviousPage();
+  void previousPage() => animation.turnPreviousPage();
 
   Future<void> animateToPage(int index) async {
     final diff = index - animation.currentIndex;
@@ -145,7 +147,9 @@ class TurnPageController extends ChangeNotifier {
     }
   }
 
-  void onTapUp({
+  void jumpToPage(int index) => animation.jump(index);
+
+  void _onTapUp({
     required TapUpDetails details,
     required BoxConstraints constraints,
   }) {
@@ -162,7 +166,7 @@ class TurnPageController extends ChangeNotifier {
     }
   }
 
-  void onHorizontalDragUpdate({
+  void _onHorizontalDragUpdate({
     required DragUpdateDetails details,
     required BoxConstraints constraints,
   }) {
@@ -212,7 +216,7 @@ class TurnPageController extends ChangeNotifier {
     }
   }
 
-  void onHorizontalDragEnd() {
+  void _onHorizontalDragEnd() {
     if (!animation.thresholdExceeded) {
       animation.reverse();
     } else {
@@ -316,5 +320,32 @@ class TurnAnimationController {
     }
     previousPage?.animateTo(_animationMinValue);
     currentIndex--;
+  }
+
+  void jump(int index) {
+    final diff = currentIndex - index;
+    if (diff == 0) {
+      return;
+    }
+
+    final isForward = diff < 0;
+    for (var i = 0; i < itemCount; i++) {
+      if (i == currentIndex) {
+        continue;
+      } else if (i < index) {
+        controllers[i].value = 1.0;
+      } else {
+        controllers[i].value = 0.0;
+      }
+      controllers[index].value = isForward ? 0.0 : 1.0;
+    }
+    if (isForward) {
+      // controllers[index].value = 0.0;
+      controllers[currentIndex].animateTo(1.0);
+    } else {
+      controllers[index].value = 1.0;
+      controllers[index].animateTo(0.0);
+    }
+    currentIndex = index;
   }
 }
