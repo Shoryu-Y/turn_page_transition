@@ -5,13 +5,13 @@ import 'package:turn_page_transition/src/turn_direction.dart';
 /// A widget that provides a page-turning animation.
 class TurnPageAnimation extends StatelessWidget {
   TurnPageAnimation({
-    Key? key,
+    super.key,
     required this.animation,
     required this.overleafColor,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
     required this.child,
-  }) : super(key: key) {
+  }) {
     final transitionPoint = animationTransitionPoint;
     assert(
       transitionPoint == null || 0 <= transitionPoint && transitionPoint < 1,

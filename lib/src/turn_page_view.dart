@@ -11,7 +11,7 @@ const _defaultThresholdValue = 0.3;
 
 class TurnPageView extends StatefulWidget {
   TurnPageView.builder({
-    Key? key,
+    super.key,
     TurnPageController? controller,
     required this.itemCount,
     required this.itemBuilder,
@@ -20,8 +20,7 @@ class TurnPageView extends StatefulWidget {
     this.useOnTap = true,
     this.useOnSwipe = true,
   })  : assert(itemCount > 0),
-        controller = controller ?? _defaultPageController,
-        super(key: key);
+        controller = controller ?? _defaultPageController;
 
   final TurnPageController controller;
   final int itemCount;
