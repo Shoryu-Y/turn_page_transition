@@ -8,9 +8,9 @@ import 'package:turn_page_transition/turn_page_transition.dart';
 class Routes {
   const Routes();
 
+  static const home = '/';
   static const first = '/first';
   static const second = '/second';
-  static const home = '/';
 
   static GoRouter routes({String? initialLocation}) {
     return GoRouter(
