@@ -170,7 +170,6 @@ class _PageTurnClipper extends CustomClipper<Path> {
   /// Determines if the clipper should be updated based on the old clipper.
   @override
   bool shouldReclip(_PageTurnClipper oldClipper) {
-    print('reclip');
     return oldClipper.animation.value != animation.value;
   }
 }
