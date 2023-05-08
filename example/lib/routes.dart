@@ -29,11 +29,17 @@ class Routes {
           path: second,
           pageBuilder: (context, state) => CustomTransitionPage(
             child: const SecondPage(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) =>
-                    TurnPageTransition(
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) =>
+                TurnPageTransition(
               animation: animation,
               overleafColor: Colors.blueAccent,
+              animationTransitionPoint: 0.5,
+              direction: TurnDirection.rightToLeft,
               child: child,
             ),
           ),
