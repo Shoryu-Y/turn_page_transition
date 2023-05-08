@@ -3,13 +3,13 @@ import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_animation.dart';
 
-final _defaultPageController = TurnPageController(
-  initialPage: 0,
-);
-
+final _defaultPageController = TurnPageController(initialPage: 0);
 const _defaultThresholdValue = 0.3;
 
+/// The [TurnPageView] class is a widget likes [PageView] with a custom page transition animation.
 class TurnPageView extends StatefulWidget {
+  /// Creates a new pageable view with a turning page effect using the provided itemBuilder.
+  /// The [itemCount] and [itemBuilder] parameters must not be null.
   TurnPageView.builder({
     super.key,
     TurnPageController? controller,
@@ -20,14 +20,29 @@ class TurnPageView extends StatefulWidget {
     this.useOnTap = true,
     this.useOnSwipe = true,
   })  : assert(itemCount > 0),
+        assert(0 <= animationTransitionPoint && animationTransitionPoint < 1),
         controller = controller ?? _defaultPageController;
 
+  /// The controller used to interact with the TurnPageView.
   final TurnPageController controller;
+
+  /// The total number of pages in the TurnPageView.
   final int itemCount;
+
+  /// A builder function that returns the widget for each page.
   final IndexedWidgetBuilder itemBuilder;
+
+  /// A builder function that returns the overleaf color for each page.
   final Color Function(int index)? overleafColorBuilder;
+
+  /// The point that behavior of the turn-page-animation changes.
+  /// This value must be 0 <= animationTransitionPoint < 1.
   final double animationTransitionPoint;
+
+  /// Determines whether the TurnPageView should respond to tap events to change pages.
   final bool useOnTap;
+
+  /// Determines whether the TurnPageView should respond to swipe events to change pages.
   final bool useOnSwipe;
 
   @override
@@ -41,7 +56,7 @@ class _TurnPageViewState extends State<TurnPageView>
   @override
   void initState() {
     super.initState();
-    widget.controller.animation = TurnAnimationController(
+    widget.controller._animation = TurnAnimationController(
       vsync: this,
       initialPage: widget.controller.initialPage,
       itemCount: widget.itemCount,
@@ -53,7 +68,7 @@ class _TurnPageViewState extends State<TurnPageView>
       widget.itemCount,
       (index) {
         final pageIndex = (widget.itemCount - 1) - index;
-        final animation = widget.controller.animation.controllers[pageIndex];
+        final animation = widget.controller._animation._controllers[pageIndex];
         final page = widget.itemBuilder(context, pageIndex);
 
         return AnimatedBuilder(
@@ -70,6 +85,12 @@ class _TurnPageViewState extends State<TurnPageView>
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.controller.dispose();
   }
 
   @override
@@ -110,10 +131,19 @@ class _TurnPageViewState extends State<TurnPageView>
   }
 }
 
+/// [TurnPageController] is responsible for managing the page state
+/// and controlling the page-turning animation for [TurnPageView].
 class TurnPageController extends ChangeNotifier {
   final int initialPage;
+
+  /// The direction in which the pages are turned.
   final TurnDirection direction;
+
+  /// The threshold value is used to determine whether a page turn should be
+  /// completed or reverted based on the percentage of the swipe gesture.
   final double thresholdValue;
+
+  /// The duration during which the page is turned.
   final Duration duration;
 
   TurnPageController({
@@ -123,30 +153,34 @@ class TurnPageController extends ChangeNotifier {
     this.duration = defaultTransitionDuration,
   }) : assert(0 <= thresholdValue && thresholdValue <= 1);
 
-  late TurnAnimationController animation;
+  late TurnAnimationController _animation;
 
-  int get currentIndex => animation.currentIndex;
+  bool? _isTurnForward;
 
-  bool? isTurnForward;
+  int get currentIndex => _animation.currentIndex;
 
   void dispose() {
     super.dispose();
-    animation.dispose();
+    _animation.dispose();
   }
 
-  void nextPage() => animation.turnNextPage();
+  /// Moves to the next page in the view.
+  void nextPage() => _animation.turnNextPage();
 
-  void previousPage() => animation.turnPreviousPage();
+  /// Moves to the previous page in the view.
+  void previousPage() => _animation.turnPreviousPage();
 
+  /// Animate to a specific page in the view.
   Future<void> animateToPage(int index) async {
-    final diff = index - animation.currentIndex;
+    final diff = index - _animation.currentIndex;
     for (var i = 0; i < diff.abs(); i++) {
-      diff >= 0 ? animation.turnNextPage() : animation.turnPreviousPage();
+      diff >= 0 ? _animation.turnNextPage() : _animation.turnPreviousPage();
       await Future.delayed(const Duration(milliseconds: 50));
     }
   }
 
-  void jumpToPage(int index) => animation.jump(index);
+  /// Moves to a specific page in the view.
+  void jumpToPage(int index) => _animation.jump(index);
 
   void _onTapUp({
     required TapUpDetails details,
@@ -180,14 +214,14 @@ class TurnPageController extends ChangeNotifier {
         break;
     }
 
-    if (this.isTurnForward == null) {
-      this.isTurnForward = delta >= 0;
+    if (this._isTurnForward == null) {
+      this._isTurnForward = delta >= 0;
     }
     final isTurnForward =
-        this.isTurnForward != null ? this.isTurnForward! : delta >= 0;
+        this._isTurnForward != null ? this._isTurnForward! : delta >= 0;
 
     if (isTurnForward) {
-      final currentPageController = animation.currentPage;
+      final currentPageController = _animation.currentPage;
       if (currentPageController == null) {
         return;
       }
@@ -197,10 +231,10 @@ class TurnPageController extends ChangeNotifier {
       } else if (updated >= 1.0) {
         updated = 1.0;
       }
-      animation.updateCurrentPage(updated);
+      _animation.updateCurrentPage(updated);
       notifyListeners();
     } else {
-      final previousPageController = animation.previousPage;
+      final previousPageController = _animation.previousPage;
       if (previousPageController == null) {
         return;
       }
@@ -210,35 +244,46 @@ class TurnPageController extends ChangeNotifier {
       } else if (updated >= 1.0) {
         updated = 1.0;
       }
-      animation.updatePreviousPage(updated);
+      _animation.updatePreviousPage(updated);
       notifyListeners();
     }
   }
 
   void _onHorizontalDragEnd() {
-    if (!animation.thresholdExceeded) {
-      animation.reverse();
+    if (!_animation.thresholdExceeded) {
+      _animation.reverse();
     } else {
-      if (isTurnForward == true) {
+      if (_isTurnForward == true) {
         nextPage();
       }
-      if (isTurnForward == false) {
+      if (_isTurnForward == false) {
         previousPage();
       }
     }
-    isTurnForward = null;
+    _isTurnForward = null;
   }
 }
 
-class TurnAnimationController {
-  static const _animationMinValue = 0.0;
-  static const _animationMaxValue = 1.0;
+const _animationMinValue = 0.0;
+const _animationMaxValue = 1.0;
 
+/// [TurnAnimationController] is responsible for managing the animation
+/// of the [TurnPageView] widget.
+class TurnAnimationController {
+  /// The index of the first page to display
   final int initialPage;
+
+  /// The total number of pages in the TurnPageView.
   final int itemCount;
+
+  /// The threshold value is used to determine whether a page turn should be
+  /// completed or reverted based on the percentage of the swipe gesture.
   final double thresholdValue;
+
+  /// The duration during which the page is turned.
   final Duration duration;
-  final List<AnimationController> controllers;
+
+  final List<AnimationController> _controllers;
 
   int currentIndex;
 
@@ -249,7 +294,7 @@ class TurnAnimationController {
     required this.thresholdValue,
     required this.duration,
   })  : currentIndex = initialPage,
-        controllers = List.generate(
+        _controllers = List.generate(
           itemCount,
           (index) => AnimationController(
             vsync: vsync,
@@ -260,10 +305,10 @@ class TurnAnimationController {
         );
 
   AnimationController? get previousPage =>
-      currentIndex > 0 ? controllers[currentIndex - 1] : null;
+      currentIndex > 0 ? _controllers[currentIndex - 1] : null;
 
   AnimationController? get currentPage =>
-      currentIndex < itemCount - 1 ? controllers[currentIndex] : null;
+      currentIndex < itemCount - 1 ? _controllers[currentIndex] : null;
 
   bool get thresholdExceeded {
     final currentPage = this.currentPage;
@@ -277,7 +322,7 @@ class TurnAnimationController {
   bool get isPreviousPageNone => currentIndex - 1 < 0;
 
   void dispose() {
-    for (final controller in controllers) {
+    for (final controller in _controllers) {
       controller.dispose();
     }
   }
@@ -332,18 +377,17 @@ class TurnAnimationController {
       if (i == currentIndex) {
         continue;
       } else if (i < index) {
-        controllers[i].value = 1.0;
+        _controllers[i].value = 1.0;
       } else {
-        controllers[i].value = 0.0;
+        _controllers[i].value = 0.0;
       }
-      controllers[index].value = isForward ? 0.0 : 1.0;
+      _controllers[index].value = isForward ? 0.0 : 1.0;
     }
     if (isForward) {
-      // controllers[index].value = 0.0;
-      controllers[currentIndex].animateTo(1.0);
+      _controllers[currentIndex].animateTo(1.0);
     } else {
-      controllers[index].value = 1.0;
-      controllers[index].animateTo(0.0);
+      _controllers[index].value = 1.0;
+      _controllers[index].animateTo(0.0);
     }
     currentIndex = index;
   }
