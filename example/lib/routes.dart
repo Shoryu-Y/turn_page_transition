@@ -8,9 +8,9 @@ import 'package:turn_page_transition/turn_page_transition.dart';
 class Routes {
   const Routes();
 
+  static const home = '/';
   static const first = '/first';
   static const second = '/second';
-  static const home = '/';
 
   static GoRouter routes({String? initialLocation}) {
     return GoRouter(
@@ -29,11 +29,17 @@ class Routes {
           path: second,
           pageBuilder: (context, state) => CustomTransitionPage(
             child: const SecondPage(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) =>
-                    TurnPageTransition(
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) =>
+                TurnPageTransition(
               animation: animation,
               overleafColor: Colors.blueAccent,
+              animationTransitionPoint: 0.5,
+              direction: TurnDirection.rightToLeft,
               child: child,
             ),
           ),

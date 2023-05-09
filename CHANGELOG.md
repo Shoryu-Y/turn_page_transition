@@ -1,14 +1,17 @@
+## 0.3.0
+- Add TurnPageView 🎉
+- Improved documentation
+- Deprecated `turningPoint` and introduced `animationTransitionPoint` as a replacement to better describe its functionality.
 ## 0.2.0
-- add direction property
-
-  Turn-page used to be only right-to-left is now also possible left-to-right.
+- Add direction property 
+- Turn-page used to be only right-to-left is now also possible left-to-right.
 ## 0.1.3
-- add turningPoint property
-- fix readme
+- Add turningPoint property
+- Fix readme
 ## 0.1.2
-- add documentation
-- fix formatting issues
+- Add documentation
+- Fix formatting issues
 ## 0.1.1
-- downgrade required dart version
+- Downgrade required dart version
 ## 0.1.0
 - Initial Version

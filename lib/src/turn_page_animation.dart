@@ -3,17 +3,16 @@ import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 
 /// A widget that provides a page-turning animation.
-class TurnPageTransition extends StatelessWidget {
-  TurnPageTransition({
+class TurnPageAnimation extends StatelessWidget {
+  TurnPageAnimation({
     super.key,
     required this.animation,
     required this.overleafColor,
-    @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
     required this.child,
   }) {
-    final transitionPoint = animationTransitionPoint ?? turningPoint;
+    final transitionPoint = animationTransitionPoint;
     assert(
       transitionPoint == null || 0 <= transitionPoint && transitionPoint < 1,
       'animationTransitionPoint must be 0 <= animationTransitionPoint < 1',
@@ -27,11 +26,6 @@ class TurnPageTransition extends StatelessWidget {
   /// Default color is [Colors.grey].
   final Color overleafColor;
 
-  /// The point at which the page-turning animation behavior changes.
-  /// This value must be between 0 and 1 (0 <= turningPoint < 1).
-  @Deprecated('Use animationTransitionPoint instead')
-  final double? turningPoint;
-
   /// The point that behavior of the turn-page-animation changes.
   /// This value must be 0 <= animationTransitionPoint < 1.
   final double? animationTransitionPoint;
@@ -44,13 +38,12 @@ class TurnPageTransition extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final transitionPoint = this.animationTransitionPoint ??
-        this.turningPoint ??
-        defaultAnimationTransitionPoint;
+    final transitionPoint =
+        this.animationTransitionPoint ?? defaultAnimationTransitionPoint;
 
     final alignment = direction == TurnDirection.rightToLeft
-        ? Alignment.centerRight
-        : Alignment.centerLeft;
+        ? Alignment.centerLeft
+        : Alignment.centerRight;
 
     return CustomPaint(
       foregroundPainter: _OverleafPainter(
@@ -69,7 +62,6 @@ class TurnPageTransition extends StatelessWidget {
           ),
           child: Align(
             alignment: alignment,
-            widthFactor: animation.value,
             child: child,
           ),
         ),
@@ -105,47 +97,58 @@ class _PageTurnClipper extends CustomClipper<Path> {
 
     final verticalVelocity = 1 / animationTransitionPoint;
 
-    /// The horizontal distance of turned page top
-    final turnedTopWidth = width;
-
-    late final double topCornerX;
-    late final double bottomCornerX;
+    late final double innerTopCornerX;
+    late final double innerBottomCornerX;
+    late final double outerBottomCornerX;
     late final double foldUpperCornerX;
+    late final double foldLowerCornerX;
     switch (direction) {
       case TurnDirection.rightToLeft:
-        topCornerX = turnedTopWidth;
-        foldUpperCornerX = 0.0;
-        bottomCornerX = turnedTopWidth;
+        innerTopCornerX = 0.0;
+        innerBottomCornerX = 0.0;
+        foldUpperCornerX = width * (1.0 - animationProgress);
         break;
       case TurnDirection.leftToRight:
-        topCornerX = 0.0;
-        foldUpperCornerX = turnedTopWidth;
-        bottomCornerX = 0.0;
+        innerTopCornerX = width;
+        innerBottomCornerX = width;
+        foldUpperCornerX = width * animationProgress;
         break;
     }
 
-    final topCorner = Offset(topCornerX, 0.0);
+    final innerTopCorner = Offset(innerTopCornerX, 0.0);
     final foldUpperCorner = Offset(foldUpperCornerX, 0.0);
+    final innerBottomCorner = Offset(innerBottomCornerX, height);
 
     final path = Path()
-      ..moveTo(topCorner.dx, topCorner.dy)
+      ..moveTo(innerTopCorner.dx, innerTopCorner.dy)
       ..lineTo(foldUpperCorner.dx, foldUpperCorner.dy);
 
     if (animationProgress <= animationTransitionPoint) {
-      final bottomCornerY = height * verticalVelocity * animationProgress;
-      final bottomCorner = Offset(bottomCornerX, bottomCornerY);
+      final foldLowerCornerY = height * verticalVelocity * animationProgress;
+      switch (direction) {
+        case TurnDirection.rightToLeft:
+          outerBottomCornerX = width;
+          foldLowerCornerX = width;
+          break;
+        case TurnDirection.leftToRight:
+          outerBottomCornerX = 0.0;
+          foldLowerCornerX = 0.0;
+          break;
+      }
+      final outerBottomCorner = Offset(outerBottomCornerX, height);
+      final foldLowerCorner = Offset(foldLowerCornerX, foldLowerCornerY);
       path
-        ..lineTo(bottomCorner.dx, bottomCorner.dy)
+        ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy)
+        ..lineTo(outerBottomCorner.dx, outerBottomCorner.dy)
+        ..lineTo(innerBottomCorner.dx, innerBottomCorner.dy)
         ..close();
     } else {
-      final widthCorrected = width / animationProgress;
       final progressSubtractedDefault =
           animationProgress - animationTransitionPoint;
       final horizontalVelocity = 1 / (1 - animationTransitionPoint);
       final turnedBottomWidth =
-          widthCorrected * progressSubtractedDefault * horizontalVelocity;
+          width * progressSubtractedDefault * horizontalVelocity;
 
-      late final double foldLowerCornerX;
       switch (direction) {
         case TurnDirection.rightToLeft:
           foldLowerCornerX = width - turnedBottomWidth;
@@ -155,22 +158,20 @@ class _PageTurnClipper extends CustomClipper<Path> {
           break;
       }
 
-      final bottomCorner = Offset(bottomCornerX, height);
       final foldLowerCorner = Offset(foldLowerCornerX, height);
 
       path
         ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy) // BottomLeft
-        ..lineTo(bottomCorner.dx, bottomCorner.dy) // BottomRight
+        ..lineTo(innerBottomCorner.dx, innerBottomCorner.dy) // BottomRight
         ..close();
     }
 
     return path;
   }
 
-  /// Determines if the clipper should be updated based on the old clipper.
   @override
   bool shouldReclip(_PageTurnClipper oldClipper) {
-    return oldClipper.animation.value != animation.value;
+    return true;
   }
 }
 
@@ -196,34 +197,33 @@ class _OverleafPainter extends CustomPainter {
   /// The direction in which the pages are turned.
   final TurnDirection direction;
 
-  /// Paints the backside of the pages on the canvas based on the animation progress and direction.
   @override
   void paint(Canvas canvas, Size size) {
     final width = size.width;
     final height = size.height;
     final animationProgress = animation.value;
 
-    late final double innerTopCornerX;
-    late final double innerBottomCornerX;
-    late final double foldUpperCornerX;
-    late final double foldLowerCornerX;
+    late final double topCornerX;
+    late final double bottomCornerX;
+    late final double topFoldX;
+    late final double bottomFoldX;
 
-    final verticalVelocity = 1 / animationTransitionPoint;
     final turnedXDistance = width * animationProgress;
 
     switch (direction) {
       case TurnDirection.rightToLeft:
-        foldUpperCornerX = width - turnedXDistance;
+        topFoldX = width - turnedXDistance;
         break;
       case TurnDirection.leftToRight:
-        foldUpperCornerX = turnedXDistance;
+        topFoldX = turnedXDistance;
         break;
     }
-    final foldUpperCorner = Offset(foldUpperCornerX, 0.0);
+    final topFold = Offset(topFoldX, 0.0);
 
-    final path = Path()..moveTo(foldUpperCorner.dx, foldUpperCorner.dy);
+    final path = Path()..moveTo(topFold.dx, topFold.dy);
 
     if (animationProgress <= animationTransitionPoint) {
+      final verticalVelocity = 1 / animationTransitionPoint;
       final turnedYDistance = height * animationProgress * verticalVelocity;
 
       final W = turnedXDistance;
@@ -234,20 +234,20 @@ class _OverleafPainter extends CustomPainter {
 
       switch (direction) {
         case TurnDirection.rightToLeft:
-          innerTopCornerX = width - 2 * intersectionX;
-          foldLowerCornerX = width;
+          topCornerX = width - 2 * intersectionX;
+          bottomFoldX = width;
           break;
         case TurnDirection.leftToRight:
-          innerTopCornerX = 2 * intersectionX;
-          foldLowerCornerX = 0.0;
+          topCornerX = 2 * intersectionX;
+          bottomFoldX = 0.0;
           break;
       }
-      final innerTopCorner = Offset(innerTopCornerX, 2 * intersectionY);
-      final foldLowerCorner = Offset(foldLowerCornerX, turnedYDistance);
+      final topCorner = Offset(topCornerX, 2 * intersectionY);
+      final bottomFold = Offset(bottomFoldX, turnedYDistance);
 
       path
-        ..lineTo(innerTopCorner.dx, innerTopCorner.dy)
-        ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy)
+        ..lineTo(topCorner.dx, topCorner.dy)
+        ..lineTo(bottomFold.dx, bottomFold.dy)
         ..close();
     } else if (animationProgress < 1) {
       final horizontalVelocity = 1 / (1 - animationTransitionPoint);
@@ -261,6 +261,7 @@ class _OverleafPainter extends CustomPainter {
       final h2 = height * height;
       final q = animationProgress - turnedBottomWidthRate;
       final q2 = q * q;
+
       // --------------------------------------------------------
 
       // Page corner position which is line target point of (W, 0) for the line connecting (W, 0) & (W, H).
@@ -276,28 +277,27 @@ class _OverleafPainter extends CustomPainter {
 
       switch (direction) {
         case TurnDirection.rightToLeft:
-          innerTopCornerX = width - 2 * intersectionX;
-          innerBottomCornerX =
-              width - 2 * intersectionX * intersectionCorrection;
-          foldLowerCornerX = width - turnedBottomWidth;
+          topCornerX = width - 2 * intersectionX;
+          bottomCornerX = width - 2 * intersectionX * intersectionCorrection;
+          bottomFoldX = width - turnedBottomWidth;
           break;
         case TurnDirection.leftToRight:
-          innerTopCornerX = 2 * intersectionX;
-          innerBottomCornerX = 2 * intersectionX * intersectionCorrection;
-          foldLowerCornerX = turnedBottomWidth;
+          topCornerX = 2 * intersectionX;
+          bottomCornerX = 2 * intersectionX * intersectionCorrection;
+          bottomFoldX = turnedBottomWidth;
           break;
       }
-      final innerTopCorner = Offset(innerTopCornerX, 2 * intersectionY);
-      final innerBottomCorner = Offset(
-        innerBottomCornerX,
+      final topCorner = Offset(topCornerX, 2 * intersectionY);
+      final bottomCorner = Offset(
+        bottomCornerX,
         2 * intersectionY * intersectionCorrection + height,
       );
-      final foldLowerCorner = Offset(foldLowerCornerX, height);
+      final bottomFold = Offset(bottomFoldX, height);
 
       path
-        ..lineTo(innerTopCorner.dx, innerTopCorner.dy)
-        ..lineTo(innerBottomCorner.dx, innerBottomCorner.dy)
-        ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy)
+        ..lineTo(topCorner.dx, topCorner.dy)
+        ..lineTo(bottomCorner.dx, bottomCorner.dy)
+        ..lineTo(bottomFold.dx, bottomFold.dy)
         ..close();
     } else {
       path.reset();
@@ -317,9 +317,8 @@ class _OverleafPainter extends CustomPainter {
       ..drawPath(path, linePaint);
   }
 
-  /// Determines if the painter should be repainted based on the old delegate.
   @override
   bool shouldRepaint(_OverleafPainter oldPainter) {
-    return oldPainter.animation.value != animation.value;
+    return true;
   }
 }
