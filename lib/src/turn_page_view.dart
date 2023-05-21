@@ -59,7 +59,7 @@ class TurnPageView extends StatefulWidget {
 
 class _TurnPageViewState extends State<TurnPageView>
     with TickerProviderStateMixin {
-  late final List<Widget> pages;
+  late List<Widget> pages;
 
   @override
   void initState() {
