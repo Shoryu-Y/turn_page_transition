@@ -99,70 +99,37 @@ class _PageTurnClipper extends CustomClipper<Path> {
   /// Creates the clipping path based on the animation progress and direction.
   @override
   Path getClip(Size size) {
-    final width = size.width;
-    final height = size.height;
-    final animationProgress = animation.value;
-
-    final verticalVelocity = 1 / animationTransitionPoint;
-
-    /// The horizontal distance of turned page top
-    final turnedTopWidth = width;
-
-    late final double topCornerX;
-    late final double bottomCornerX;
-    late final double foldUpperCornerX;
-    switch (direction) {
-      case TurnDirection.rightToLeft:
-        topCornerX = turnedTopWidth;
-        foldUpperCornerX = 0.0;
-        bottomCornerX = turnedTopWidth;
-        break;
-      case TurnDirection.leftToRight:
-        topCornerX = 0.0;
-        foldUpperCornerX = turnedTopWidth;
-        bottomCornerX = 0.0;
-        break;
-    }
-
-    final topCorner = Offset(topCornerX, 0.0);
-    final foldUpperCorner = Offset(foldUpperCornerX, 0.0);
+    final topCorner = calcTopCorner(
+      size: size,
+      direction: direction,
+      animationTransitionPoint: animationTransitionPoint,
+      animationProgress: animation.value,
+    );
+    final bottomCorner = calcBottomCorner(
+      size: size,
+      direction: direction,
+      animationTransitionPoint: animationTransitionPoint,
+      animationProgress: animation.value,
+    );
+    final foldUpperCorner = calcFoldUpperCorner(
+      size: size,
+      direction: direction,
+      animationTransitionPoint: animationTransitionPoint,
+      animationProgress: animation.value,
+    );
+    final foldLowerCorner = calcFoldLowerCorner(
+      size: size,
+      direction: direction,
+      animationTransitionPoint: animationTransitionPoint,
+      animationProgress: animation.value,
+    );
 
     final path = Path()
       ..moveTo(topCorner.dx, topCorner.dy)
-      ..lineTo(foldUpperCorner.dx, foldUpperCorner.dy);
-
-    if (animationProgress <= animationTransitionPoint) {
-      final bottomCornerY = height * verticalVelocity * animationProgress;
-      final bottomCorner = Offset(bottomCornerX, bottomCornerY);
-      path
-        ..lineTo(bottomCorner.dx, bottomCorner.dy)
-        ..close();
-    } else {
-      final widthCorrected = width / animationProgress;
-      final progressSubtractedDefault =
-          animationProgress - animationTransitionPoint;
-      final horizontalVelocity = 1 / (1 - animationTransitionPoint);
-      final turnedBottomWidth =
-          widthCorrected * progressSubtractedDefault * horizontalVelocity;
-
-      late final double foldLowerCornerX;
-      switch (direction) {
-        case TurnDirection.rightToLeft:
-          foldLowerCornerX = width - turnedBottomWidth;
-          break;
-        case TurnDirection.leftToRight:
-          foldLowerCornerX = turnedBottomWidth;
-          break;
-      }
-
-      final bottomCorner = Offset(bottomCornerX, height);
-      final foldLowerCorner = Offset(foldLowerCornerX, height);
-
-      path
-        ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy) // BottomLeft
-        ..lineTo(bottomCorner.dx, bottomCorner.dy) // BottomRight
-        ..close();
-    }
+      ..lineTo(foldUpperCorner.dx, foldUpperCorner.dy)
+      ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy)
+      ..lineTo(bottomCorner.dx, bottomCorner.dy)
+      ..close();
 
     return path;
   }
@@ -171,6 +138,96 @@ class _PageTurnClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(_PageTurnClipper oldClipper) {
     return oldClipper.animation.value != animation.value;
+  }
+
+  /// 遷移後の画面の上側の角
+  Offset calcTopCorner({
+    required Size size,
+    required TurnDirection direction,
+    required double animationTransitionPoint,
+    required double animationProgress,
+  }) {
+    /// The horizontal distance of turned page top
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        return Offset(size.width, 0);
+      case TurnDirection.leftToRight:
+        return Offset(0, 0);
+    }
+  }
+
+  /// 遷移後の画面の下側の角
+  Offset calcBottomCorner({
+    required Size size,
+    required TurnDirection direction,
+    required double animationTransitionPoint,
+    required double animationProgress,
+  }) {
+    final verticalVelocity = 1 / animationTransitionPoint;
+    final bottomCornerY = size.height * verticalVelocity * animationProgress;
+
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        return Offset(size.width, bottomCornerY);
+      case TurnDirection.leftToRight:
+        return Offset(0, bottomCornerY);
+    }
+  }
+
+  Offset calcFoldUpperCorner({
+    required Size size,
+    required TurnDirection direction,
+    required double animationTransitionPoint,
+    required double animationProgress,
+  }) {
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        return Offset(0, 0);
+      case TurnDirection.leftToRight:
+        return Offset(size.width, 0);
+    }
+  }
+
+  Offset calcFoldLowerCorner({
+    required Size size,
+    required TurnDirection direction,
+    required double animationTransitionPoint,
+    required double animationProgress,
+  }) {
+    if (animationProgress <= animationTransitionPoint) {
+      // animationProgressがanimationTransitionPointを超えない時、
+      // foldLowerCornerはbottomCornerと一致する
+      return calcBottomCorner(
+        size: size,
+        direction: direction,
+        animationTransitionPoint: animationTransitionPoint,
+        animationProgress: animationProgress,
+      );
+    }
+
+    // ここで取得しているsizeとは、画面全体のsizeではなく、既に表示されている遷移先画面のsizeである。
+    // 既に表示されている遷移先画面とはchildのAlign。つまり
+    // size.widthは 画面全体のsize * animationProgress を示す
+    // そのため画面全体のwidth(widthCorrected)は size.width / animationProgress で算出できる。
+    final widthCorrected = size.width / animationProgress;
+
+    // ページめくりの進行度が下側の角を超えて以降のアニメーションの進行度を用いて計算を行う
+    final progressSubtractedDefault =
+        animationProgress - animationTransitionPoint;
+    final horizontalVelocity = 1 / (1 - animationTransitionPoint);
+    final turnedBottomWidth =
+        widthCorrected * progressSubtractedDefault * horizontalVelocity;
+
+    late final double foldLowerCornerX;
+    switch (direction) {
+      case TurnDirection.rightToLeft:
+        foldLowerCornerX = size.width - turnedBottomWidth;
+        break;
+      case TurnDirection.leftToRight:
+        foldLowerCornerX = turnedBottomWidth;
+        break;
+    }
+    return Offset(foldLowerCornerX, size.height);
   }
 }
 
