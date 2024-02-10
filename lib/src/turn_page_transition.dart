@@ -99,26 +99,37 @@ class _PageTurnClipper extends CustomClipper<Path> {
   /// Creates the clipping path based on the animation progress and direction.
   @override
   Path getClip(Size size) {
+    // ここで取得しているsizeとは、画面全体のsizeではなく、childのAlignのsizeである。
+    // AlignではwidthFactorに`animation.value`を設定しているため
+    //   size.width = 画面全体のwidth * animation.value
+    //   size.height = 画面全体のheight
+    // で示される。
+    // そのため画面全体のwidth(screenWidth)は size.width / animation.value で算出できる。
+    final childWidth = size.width;
+    final screenWidth = childWidth / animation.value;
+    final height = size.height; // = childHeight = screenHeight
+
+    // 上記で説明したように、sizeは既にめくられた遷移先画面のsizeであるため、
+    // Pathに指定するOffsetもめくられた遷移先画面の左上が基準(Offset(0, 0))となる。
     final topCorner = calcTopCorner(
-      size: size,
+      childWidth: childWidth,
       direction: direction,
-      animationTransitionPoint: animationTransitionPoint,
-      animationProgress: animation.value,
     );
     final bottomCorner = calcBottomCorner(
-      size: size,
+      childWidth: childWidth,
+      height: height,
       direction: direction,
       animationTransitionPoint: animationTransitionPoint,
       animationProgress: animation.value,
     );
     final foldUpperCorner = calcFoldUpperCorner(
-      size: size,
+      childWidth: childWidth,
       direction: direction,
-      animationTransitionPoint: animationTransitionPoint,
-      animationProgress: animation.value,
     );
     final foldLowerCorner = calcFoldLowerCorner(
-      size: size,
+      childWidth: childWidth,
+      screenWidth: screenWidth,
+      height: height,
       direction: direction,
       animationTransitionPoint: animationTransitionPoint,
       animationProgress: animation.value,
@@ -142,15 +153,12 @@ class _PageTurnClipper extends CustomClipper<Path> {
 
   /// 遷移後の画面の上側の角
   Offset calcTopCorner({
-    required Size size,
+    required double childWidth,
     required TurnDirection direction,
-    required double animationTransitionPoint,
-    required double animationProgress,
   }) {
-    /// The horizontal distance of turned page top
     switch (direction) {
       case TurnDirection.rightToLeft:
-        return Offset(size.width, 0);
+        return Offset(childWidth, 0);
       case TurnDirection.leftToRight:
         return Offset(0, 0);
     }
@@ -158,38 +166,50 @@ class _PageTurnClipper extends CustomClipper<Path> {
 
   /// 遷移後の画面の下側の角
   Offset calcBottomCorner({
-    required Size size,
+    required double childWidth,
+    required double height,
     required TurnDirection direction,
     required double animationTransitionPoint,
     required double animationProgress,
   }) {
-    final verticalVelocity = 1 / animationTransitionPoint;
-    final bottomCornerY = size.height * verticalVelocity * animationProgress;
+    if (animationProgress > animationTransitionPoint) {
+      switch (direction) {
+        case TurnDirection.rightToLeft:
+          return Offset(childWidth, height);
+        case TurnDirection.leftToRight:
+          return Offset(0, height);
+      }
+    }
+
+    // `animationProgress`の最大を`animationTransitionPoint`として、
+    // めくられたページの高さの割合
+    final turnedPageHeightRatio = animationProgress / animationTransitionPoint;
+    final bottomCornerY = height * turnedPageHeightRatio;
 
     switch (direction) {
       case TurnDirection.rightToLeft:
-        return Offset(size.width, bottomCornerY);
+        return Offset(childWidth, bottomCornerY);
       case TurnDirection.leftToRight:
         return Offset(0, bottomCornerY);
     }
   }
 
   Offset calcFoldUpperCorner({
-    required Size size,
+    required double childWidth,
     required TurnDirection direction,
-    required double animationTransitionPoint,
-    required double animationProgress,
   }) {
     switch (direction) {
       case TurnDirection.rightToLeft:
         return Offset(0, 0);
       case TurnDirection.leftToRight:
-        return Offset(size.width, 0);
+        return Offset(childWidth, 0);
     }
   }
 
   Offset calcFoldLowerCorner({
-    required Size size,
+    required double childWidth,
+    required double screenWidth,
+    required double height,
     required TurnDirection direction,
     required double animationTransitionPoint,
     required double animationProgress,
@@ -198,36 +218,28 @@ class _PageTurnClipper extends CustomClipper<Path> {
       // animationProgressがanimationTransitionPointを超えない時、
       // foldLowerCornerはbottomCornerと一致する
       return calcBottomCorner(
-        size: size,
+        childWidth: childWidth,
+        height: height,
         direction: direction,
         animationTransitionPoint: animationTransitionPoint,
         animationProgress: animationProgress,
       );
     }
 
-    // ここで取得しているsizeとは、画面全体のsizeではなく、既に表示されている遷移先画面のsizeである。
-    // 既に表示されている遷移先画面とはchildのAlign。つまり
-    // size.widthは 画面全体のsize * animationProgress を示す
-    // そのため画面全体のwidth(widthCorrected)は size.width / animationProgress で算出できる。
-    final widthCorrected = size.width / animationProgress;
-
-    // ページめくりの進行度が下側の角を超えて以降のアニメーションの進行度を用いて計算を行う
-    final progressSubtractedDefault =
+    final turnedPageBottomProgress =
         animationProgress - animationTransitionPoint;
-    final horizontalVelocity = 1 / (1 - animationTransitionPoint);
-    final turnedBottomWidth =
-        widthCorrected * progressSubtractedDefault * horizontalVelocity;
+    final turnedPageBottomWidthRatio =
+        turnedPageBottomProgress / (1 - animationTransitionPoint);
+    final turnedBottomWidth = screenWidth * turnedPageBottomWidthRatio;
 
-    late final double foldLowerCornerX;
     switch (direction) {
       case TurnDirection.rightToLeft:
-        foldLowerCornerX = size.width - turnedBottomWidth;
-        break;
+        final foldLowerCornerX = childWidth - turnedBottomWidth;
+        return Offset(foldLowerCornerX, height);
       case TurnDirection.leftToRight:
-        foldLowerCornerX = turnedBottomWidth;
-        break;
+        final foldLowerCornerX = turnedBottomWidth;
+        return Offset(foldLowerCornerX, height);
     }
-    return Offset(foldLowerCornerX, size.height);
   }
 }
 
