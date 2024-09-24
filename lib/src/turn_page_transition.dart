@@ -80,7 +80,8 @@ class TurnPageTransition extends StatelessWidget {
 }
 
 /// CustomClipper that creates the page-turning clipping path.
-class _PageTurnClipper extends CustomClipper<Path> with PageTurnClipperCalculator {
+class _PageTurnClipper extends CustomClipper<Path>
+    with PageTurnClipperCalculator {
   const _PageTurnClipper({
     required this.animation,
     required this.animationTransitionPoint,
