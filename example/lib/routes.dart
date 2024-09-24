@@ -15,7 +15,7 @@ class Routes {
   static GoRouter routes({String? initialLocation}) {
     return GoRouter(
       initialLocation: initialLocation ?? home,
-      redirect: (state) => null,
+      // redirect: (context, state) => null,
       routes: [
         GoRoute(
           path: home,

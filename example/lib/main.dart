@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'TurnPageTransition Example',
       debugShowCheckedModeBanner: false,
+      routerConfig: routes,
       theme: ThemeData(
         pageTransitionsTheme: const TurnPageTransitionsTheme(
           overleafColor: Colors.grey,
@@ -23,8 +24,8 @@ class MyApp extends StatelessWidget {
         ),
         primarySwatch: Colors.blue,
       ),
-      routeInformationParser: routes.routeInformationParser,
-      routerDelegate: routes.routerDelegate,
+      // routeInformationParser: routes.routeInformationParser,
+      // routerDelegate: routes.routerDelegate,
     );
   }
 }
