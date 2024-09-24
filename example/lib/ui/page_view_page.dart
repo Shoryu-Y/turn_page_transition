@@ -35,6 +35,12 @@ class PageViewPage extends StatelessWidget {
           return Color.fromARGB(255, 0, 100, b);
         },
         animationTransitionPoint: 0.5,
+        onTap: (isTurnForward) {
+          print("onTap isTurnForward: $isTurnForward");
+        },
+        onSwipe: (isTurnForward) {
+          print("onSwipe isTurnForward: $isTurnForward");
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

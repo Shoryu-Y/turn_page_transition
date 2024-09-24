@@ -48,10 +48,10 @@ class TurnPageView extends StatefulWidget {
   final bool useOnSwipe;
 
   /// A callback functions than runs when swipe event ends.
-  final Function(bool next)? onSwipe;
+  final Function(bool isTurnForward)? onSwipe;
 
   /// A callback functions than runs when tap event ends.
-  final Function(bool next)? onTap;
+  final Function(bool isTurnForward)? onTap;
 
   @override
   State<TurnPageView> createState() => _TurnPageViewState();
@@ -64,17 +64,20 @@ class _TurnPageViewState extends State<TurnPageView>
   @override
   void initState() {
     super.initState();
-    widget.controller._animation = TurnAnimationController(
-      vsync: this,
-      initialPage: widget.controller.initialPage,
-      itemCount: widget.itemCount,
-      thresholdValue: widget.controller.thresholdValue,
-      duration: widget.controller.duration,
-    );
+    widget.controller
+      .._animation = TurnAnimationController(
+        vsync: this,
+        initialPage: widget.controller.initialPage,
+        itemCount: widget.itemCount,
+        thresholdValue: widget.controller.thresholdValue,
+        duration: widget.controller.duration,
+      )
+      ..onTap = widget.onTap
+      ..onSwipe = widget.onSwipe;
     generatePages();
   }
 
-  generatePages() {
+  void generatePages() {
     pages = List.generate(
       widget.itemCount,
       (index) {
@@ -125,7 +128,6 @@ class _TurnPageViewState extends State<TurnPageView>
           controller._onTapUp(
             details: details,
             constraints: constraints,
-            onTap: widget.onTap,
           );
         },
         onHorizontalDragUpdate: (details) {
@@ -141,7 +143,7 @@ class _TurnPageViewState extends State<TurnPageView>
           if (!widget.useOnSwipe) {
             return;
           }
-          controller._onHorizontalDragEnd(widget.onSwipe);
+          controller._onHorizontalDragEnd();
         },
         child: Stack(
           children: pages,
@@ -172,6 +174,10 @@ class TurnPageController extends ChangeNotifier {
     this.thresholdValue = _defaultThresholdValue,
     this.duration = defaultTransitionDuration,
   }) : assert(0 <= thresholdValue && thresholdValue <= 1);
+
+  void Function(bool isTurnForward)? onTap;
+
+  void Function(bool isTurnForward)? onSwipe;
 
   late TurnAnimationController _animation;
 
@@ -205,29 +211,19 @@ class TurnPageController extends ChangeNotifier {
   void _onTapUp({
     required TapUpDetails details,
     required BoxConstraints constraints,
-    void Function(bool next)? onTap,
   }) {
     final isLeftSideTapped =
         details.localPosition.dx <= constraints.maxWidth / 2;
 
     switch (direction) {
       case TurnDirection.rightToLeft:
-        if (isLeftSideTapped) {
-          previousPage();
-          onTap?.call(false);
-        } else {
-          nextPage();
-          onTap?.call(true);
-        }
+        isLeftSideTapped ? previousPage() : nextPage();
+        onTap?.call(!isLeftSideTapped);
         break;
+
       case TurnDirection.leftToRight:
-        if (isLeftSideTapped) {
-          nextPage();
-          onTap?.call(true);
-        } else {
-          previousPage();
-          onTap?.call(false);
-        }
+        isLeftSideTapped ? nextPage() : previousPage();
+        onTap?.call(isLeftSideTapped);
         break;
     }
   }
@@ -282,19 +278,17 @@ class TurnPageController extends ChangeNotifier {
     }
   }
 
-  void _onHorizontalDragEnd(void Function(bool next)? onSwipe) {
+  void _onHorizontalDragEnd() {
     if (!_animation.thresholdExceeded) {
       _animation.reverse();
     } else {
-      if (_isTurnForward == true) {
-        nextPage();
-        onSwipe?.call(true);
-      }
-      if (_isTurnForward == false) {
-        previousPage();
-        onSwipe?.call(false);
+      final isTurnForward = _isTurnForward;
+      if (isTurnForward != null) {
+        isTurnForward ? nextPage() : previousPage();
+        onSwipe?.call(isTurnForward);
       }
     }
+
     _isTurnForward = null;
   }
 }
