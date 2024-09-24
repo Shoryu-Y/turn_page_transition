@@ -1,3 +1,8 @@
+## 0.4.0
+- Rebuild on itemBuilder change - onSwipe and onTap callbacks [@soheilqk][] - [#8](https://github.com/Shoryu-Y/turn_page_transition/pull/8)
+- Example is not working. so I modified it. [@b3lon9][] - [#11](https://github.com/Shoryu-Y/turn_page_transition/pull/11)
+- Add test code
+
 ## 0.3.0
 - Add TurnPageView 🎉
 - Improved documentation
