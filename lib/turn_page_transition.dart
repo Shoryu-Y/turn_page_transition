@@ -10,3 +10,4 @@ export 'package:turn_page_transition/src/turn_page_view.dart'
     show TurnPageView, TurnPageController;
 export 'package:turn_page_transition/src/turn_direction.dart'
     show TurnDirection;
+export 'package:turn_page_transition/src/turn_page_transition_calc.dart';
