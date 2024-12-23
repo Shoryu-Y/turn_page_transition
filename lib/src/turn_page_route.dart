@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
+import 'package:turn_page_transition/src/turn_corner.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_transition.dart';
 
@@ -22,7 +23,9 @@ class TurnPageRoute<T> extends PageRoute<T> {
     this.overleafColor = defaultOverleafColor,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
+    @Deprecated("Use turnCorner instead")
     this.direction = TurnDirection.rightToLeft,
+    TurnCorner? startCorner,
     this.transitionDuration = defaultTransitionDuration,
     this.reverseTransitionDuration = defaultTransitionDuration,
     this.opaque = true,
@@ -31,7 +34,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
     this.barrierLabel,
     this.maintainState = true,
     bool fullscreenDialog = false,
-  });
+  }) : startCorner = startCorner ?? direction.toTurnCorner();
 
   /// The builder function to create the target widget.
   final WidgetBuilder builder;
@@ -47,8 +50,11 @@ class TurnPageRoute<T> extends PageRoute<T> {
   /// This value must be 0 <= animationTransitionPoint < 1.
   final double? animationTransitionPoint;
 
-  /// The direction in which the pages are turned.
+  @Deprecated("Use turnCorner instead")
   final TurnDirection direction;
+
+  /// The corner where the turn should start
+  final TurnCorner startCorner;
 
   @override
   final Duration transitionDuration;
@@ -93,7 +99,7 @@ class TurnPageRoute<T> extends PageRoute<T> {
       animation: animation,
       overleafColor: overleafColor,
       animationTransitionPoint: transitionPoint,
-      direction: direction,
+      startCorner: startCorner,
       child: child,
     );
   }
