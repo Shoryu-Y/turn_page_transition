@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
+import 'package:turn_page_transition/src/turn_corner.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_transitions_builder.dart';
 
@@ -18,12 +19,14 @@ import 'package:turn_page_transition/src/turn_page_transitions_builder.dart';
 ///       home: HomePage(),
 ///  )
 class TurnPageTransitionsTheme extends PageTransitionsTheme {
-  const TurnPageTransitionsTheme({
+  TurnPageTransitionsTheme({
     this.overleafColor = defaultOverleafColor,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
+    @Deprecated("Use turnCorner instead")
     this.direction = TurnDirection.rightToLeft,
-  });
+    TurnCorner? startCorner,
+  }) : startCorner = startCorner ?? direction.toTurnCorner();
 
   /// The color of page backsides
   /// default Color is [Colors.grey]
@@ -38,13 +41,16 @@ class TurnPageTransitionsTheme extends PageTransitionsTheme {
   /// This value must be 0 <= animationTransitionPoint < 1.
   final double? animationTransitionPoint;
 
-  /// The direction in which the pages are turned.
+  @Deprecated("Use turnCorner instead")
   final TurnDirection direction;
+
+  /// The corner where the turn should start
+  final TurnCorner startCorner;
 
   PageTransitionsBuilder get _builder => TurnPageTransitionsBuilder(
         overleafColor: overleafColor,
         animationTransitionPoint: animationTransitionPoint ?? turningPoint,
-        direction: direction,
+        startCorner: startCorner,
       );
 
   @override

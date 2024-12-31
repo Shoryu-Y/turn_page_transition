@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
+import 'package:turn_page_transition/src/turn_corner.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_transition_calc.dart';
 
@@ -11,9 +12,11 @@ class TurnPageTransition extends StatelessWidget {
     required this.overleafColor,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
+    @Deprecated("Use turnCorner instead")
     this.direction = TurnDirection.rightToLeft,
+    TurnCorner? startCorner,
     required this.child,
-  }) {
+  }) : startCorner = startCorner ?? direction.toTurnCorner() {
     final transitionPoint = animationTransitionPoint ?? turningPoint;
     assert(
       transitionPoint == null || 0 <= transitionPoint && transitionPoint < 1,
@@ -37,8 +40,11 @@ class TurnPageTransition extends StatelessWidget {
   /// This value must be 0 <= animationTransitionPoint < 1.
   final double? animationTransitionPoint;
 
-  /// The direction in which the pages are turned.
+  @Deprecated("Use turnCorner instead")
   final TurnDirection direction;
+
+  /// The corner where the turn should start
+  final TurnCorner startCorner;
 
   /// The widget that is displayed with the page-turning animation.
   final Widget child;
@@ -49,16 +55,15 @@ class TurnPageTransition extends StatelessWidget {
         this.turningPoint ??
         defaultAnimationTransitionPoint;
 
-    final alignment = direction == TurnDirection.rightToLeft
-        ? Alignment.centerRight
-        : Alignment.centerLeft;
+    final alignment =
+        startCorner.isRight ? Alignment.centerRight : Alignment.centerLeft;
 
     return CustomPaint(
       foregroundPainter: _OverleafPainter(
         animation: animation,
         color: overleafColor,
         animationTransitionPoint: transitionPoint,
-        direction: direction,
+        startCorner: startCorner,
       ),
       child: Align(
         alignment: alignment,
@@ -66,7 +71,7 @@ class TurnPageTransition extends StatelessWidget {
           clipper: _PageTurnClipper(
             animation: animation,
             animationTransitionPoint: transitionPoint,
-            direction: direction,
+            startCorner: startCorner,
           ),
           child: Align(
             alignment: alignment,
@@ -85,7 +90,7 @@ class _PageTurnClipper extends CustomClipper<Path>
   const _PageTurnClipper({
     required this.animation,
     required this.animationTransitionPoint,
-    this.direction = TurnDirection.leftToRight,
+    required this.startCorner,
   });
 
   /// The animation that controls the page-turning effect.
@@ -95,8 +100,8 @@ class _PageTurnClipper extends CustomClipper<Path>
   /// This value must be between 0 and 1 (0 <= animationTransitionPoint < 1).
   final double animationTransitionPoint;
 
-  /// The direction in which the pages are turned.
-  final TurnDirection direction;
+  /// The corner where the turn should start
+  final TurnCorner startCorner;
 
   /// Creates the clipping path based on the animation progress and direction.
   @override
@@ -109,39 +114,41 @@ class _PageTurnClipper extends CustomClipper<Path>
     // そのため画面全体のwidth(screenWidth)は size.width / animation.value で算出できる。
     final childWidth = size.width;
     final screenWidth = childWidth / animation.value;
-    final height = size.height; // = childHeight = screenHeight
+    final screenHeight = size.height; // = childHeight = screenHeight
 
     // 上記で説明したように、sizeは既にめくられた遷移先画面のsizeであるため、
     // Pathに指定するOffsetもめくられた遷移先画面の左上が基準(Offset(0, 0))となる。
-    final topCorner = calcTopCorner(
+    final cornerToFold = calcCornerToFold(
       childWidth: childWidth,
-      direction: direction,
+      childHeight: screenHeight,
+      turnCorner: startCorner,
     );
-    final bottomCorner = calcBottomCorner(
+    final oppositeCornerToFold = calcOppositeCornerToFold(
       childWidth: childWidth,
-      height: height,
-      direction: direction,
+      childHeight: screenHeight,
+      turnCorner: startCorner,
       animationTransitionPoint: animationTransitionPoint,
       animationProgress: animation.value,
     );
     final foldUpperCorner = calcFoldUpperCorner(
       childWidth: childWidth,
-      direction: direction,
+      childHeight: screenHeight,
+      turnCorner: startCorner,
     );
     final foldLowerCorner = calcFoldLowerCorner(
       childWidth: childWidth,
       screenWidth: screenWidth,
-      height: height,
-      direction: direction,
+      screenHeight: screenHeight,
+      turnCorner: startCorner,
       animationTransitionPoint: animationTransitionPoint,
       animationProgress: animation.value,
     );
 
     final path = Path()
-      ..moveTo(topCorner.dx, topCorner.dy)
+      ..moveTo(cornerToFold.dx, cornerToFold.dy)
       ..lineTo(foldUpperCorner.dx, foldUpperCorner.dy)
       ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy)
-      ..lineTo(bottomCorner.dx, bottomCorner.dy)
+      ..lineTo(oppositeCornerToFold.dx, oppositeCornerToFold.dy)
       ..close();
 
     return path;
@@ -160,7 +167,7 @@ class _OverleafPainter extends CustomPainter with OverleafPainterCalculator {
     required this.animation,
     required this.color,
     required this.animationTransitionPoint,
-    required this.direction,
+    required this.startCorner,
   });
 
   /// The animation that controls the page-turning effect.
@@ -173,8 +180,8 @@ class _OverleafPainter extends CustomPainter with OverleafPainterCalculator {
   /// This value must be between 0 and 1 (0 <= animationTransitionPoint < 1).
   final double animationTransitionPoint;
 
-  /// The direction in which the pages are turned.
-  final TurnDirection direction;
+  /// The corner where the turn should start
+  final TurnCorner startCorner;
 
   /// Paints the backside of the pages on the canvas based on the animation progress and direction.
   @override
@@ -184,41 +191,42 @@ class _OverleafPainter extends CustomPainter with OverleafPainterCalculator {
     }
 
     final screenWidth = size.width;
+    final screenHeight = size.height;
     final turnedHorizontalDistance = screenWidth * animation.value;
-    final height = size.height;
 
     final foldUpperCorner = calcFoldUpperCorner(
       screenWidth: screenWidth,
+      screenHeight: screenHeight,
       turnedHorizontalDistance: turnedHorizontalDistance,
-      direction: direction,
+      turnCorner: startCorner,
     );
-    final topCorner = calcTopCorner(
+    final cornerToFold = calcCornerToFold(
       screenWidth: screenWidth,
+      screenHeight: screenHeight,
       turnedHorizontalDistance: turnedHorizontalDistance,
-      height: height,
-      direction: direction,
+      turnCorner: startCorner,
       animationTransitionPoint: animationTransitionPoint,
       animationProgress: animation.value,
     );
-    final bottomCorner = calcBottomCorner(
+    final oppositeCorner = calcOppositeCornerToFold(
       screenWidth: screenWidth,
-      height: height,
-      direction: direction,
+      screenHeight: screenHeight,
+      turnCorner: startCorner,
       animationTransitionPoint: animationTransitionPoint,
       animationProgress: animation.value,
     );
     final foldLowerCorner = calcFoldLowerCorner(
       screenWidth: screenWidth,
-      height: height,
-      direction: direction,
+      screenHeight: screenHeight,
+      turnCorner: startCorner,
       animationTransitionPoint: animationTransitionPoint,
       animationProgress: animation.value,
     );
 
     final path = Path()
       ..moveTo(foldUpperCorner.dx, foldUpperCorner.dy)
-      ..lineTo(topCorner.dx, topCorner.dy)
-      ..lineTo(bottomCorner.dx, bottomCorner.dy)
+      ..lineTo(cornerToFold.dx, cornerToFold.dy)
+      ..lineTo(oppositeCorner.dx, oppositeCorner.dy)
       ..lineTo(foldLowerCorner.dx, foldLowerCorner.dy)
       ..close();
 

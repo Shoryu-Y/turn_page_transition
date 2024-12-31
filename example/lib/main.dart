@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routerConfig: routes,
       theme: ThemeData(
-        pageTransitionsTheme: const TurnPageTransitionsTheme(
+        pageTransitionsTheme: TurnPageTransitionsTheme(
           overleafColor: Colors.grey,
           animationTransitionPoint: 0.5,
         ),
