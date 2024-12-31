@@ -39,7 +39,7 @@ class Routes {
               animation: animation,
               overleafColor: Colors.blueAccent,
               animationTransitionPoint: 0.5,
-              startCorner: TurnCorner.bottomRight,
+              startCorner: TurnCorner.topRight,
               child: child,
             ),
           ),

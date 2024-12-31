@@ -16,7 +16,7 @@ class PageViewPage extends StatelessWidget {
         return _Page(index: index, color: color);
       },
     );
-    final controller = TurnPageController(startCorner: TurnCorner.bottomRight);
+    final controller = TurnPageController(startCorner: TurnCorner.topRight);
     return Scaffold(
       body: TurnPageView.builder(
         controller: controller,
