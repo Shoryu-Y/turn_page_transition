@@ -126,9 +126,9 @@ class _PageTurnClipper extends CustomClipper<Path> {
       innerBottomCornerY = height;
       foldUpperCornerY = 0;
     } else {
-      innerTopCornerY = 0;
+      innerTopCornerY = height;
       innerBottomCornerY = 0;
-      foldUpperCornerY = 0;
+      foldUpperCornerY = height;
     }
 
     final path = Path()
@@ -262,7 +262,7 @@ class _OverleafPainter extends CustomPainter {
         bottomFoldY = turnedYDistance;
       } else {
         startCornerY = height - 2 * intersectionY;
-        bottomFoldY = height + turnedYDistance;
+        bottomFoldY = 0;
       }
 
       path
@@ -309,8 +309,8 @@ class _OverleafPainter extends CustomPainter {
         endCornerY = 2 * intersectionY * intersectionCorrection + height;
         bottomFoldY = height;
       } else {
-        startCornerY = 0;
-        endCornerY = 2 * intersectionY * intersectionCorrection;
+        startCornerY = height - 2 * intersectionY;
+        endCornerY = 0;
         bottomFoldY = 0;
       }
 
