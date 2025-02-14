@@ -16,6 +16,7 @@ class TurnPageView extends StatefulWidget {
     required this.itemCount,
     required this.itemBuilder,
     this.overleafColorBuilder,
+    this.overleafBorderColorBuilder,
     this.animationTransitionPoint = defaultAnimationTransitionPoint,
     this.useOnTap = true,
     this.useOnSwipe = true,
@@ -36,6 +37,9 @@ class TurnPageView extends StatefulWidget {
 
   /// A builder function that returns the overleaf color for each page.
   final Color Function(int index)? overleafColorBuilder;
+
+  /// A builder function that returns the overleaf border color for each page.
+  final Color Function(int index)? overleafBorderColorBuilder;
 
   /// The point that behavior of the turn-page-animation changes.
   /// This value must be 0 <= animationTransitionPoint < 1.
@@ -92,6 +96,9 @@ class _TurnPageViewState extends State<TurnPageView>
             animation: animation,
             overleafColor: widget.overleafColorBuilder?.call(pageIndex) ??
                 defaultOverleafColor,
+            overleafBorderColor:
+                widget.overleafBorderColorBuilder?.call(pageIndex) ??
+                    defaultOverleafBorderColor,
             animationTransitionPoint: widget.animationTransitionPoint,
             direction: widget.controller.direction,
             child: child ?? page,

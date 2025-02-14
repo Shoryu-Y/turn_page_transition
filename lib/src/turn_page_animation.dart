@@ -8,6 +8,7 @@ class TurnPageAnimation extends StatelessWidget {
     super.key,
     required this.animation,
     required this.overleafColor,
+    required this.overleafBorderColor,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
     required this.child,
@@ -25,6 +26,10 @@ class TurnPageAnimation extends StatelessWidget {
   /// The color of the backside of the pages.
   /// Default color is [Colors.grey].
   final Color overleafColor;
+
+  /// The color of the backside border of the pages.
+  /// Default color is [Colors.black].
+  final Color overleafBorderColor;
 
   /// The point that behavior of the turn-page-animation changes.
   /// This value must be 0 <= animationTransitionPoint < 1.
@@ -49,6 +54,7 @@ class TurnPageAnimation extends StatelessWidget {
       foregroundPainter: _OverleafPainter(
         animation: animation,
         color: overleafColor,
+        borderColor: overleafBorderColor,
         animationTransitionPoint: transitionPoint,
         direction: direction,
       ),
@@ -182,6 +188,7 @@ class _OverleafPainter extends CustomPainter {
     required this.color,
     required this.animationTransitionPoint,
     required this.direction,
+    required this.borderColor,
   });
 
   /// The animation that controls the page-turning effect.
@@ -189,6 +196,9 @@ class _OverleafPainter extends CustomPainter {
 
   /// The color of the backside of the pages.
   final Color color;
+
+  /// The color of the page border
+  final Color borderColor;
 
   /// The point at which the page-turning animation behavior changes.
   /// This value must be between 0 and 1 (0 <= animationTransitionPoint < 1).
@@ -308,7 +318,7 @@ class _OverleafPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final linePaint = Paint()
-      ..color = Colors.black
+      ..color = borderColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
