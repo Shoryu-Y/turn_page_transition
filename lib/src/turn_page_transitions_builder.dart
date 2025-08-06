@@ -5,12 +5,18 @@ import 'package:turn_page_transition/src/turn_page_transition.dart';
 class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
   const TurnPageTransitionsBuilder({
     required this.overleafColor,
+    required this.strokeColor,
+    required this.strokeWidth,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
   });
 
   final Color overleafColor;
+
+  final Color strokeColor;
+
+  final double strokeWidth;
 
   /// The point at which the page-turning animation behavior changes.
   /// This value must be between 0 and 1 (0 <= turningPoint < 1).
@@ -37,6 +43,8 @@ class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
     return TurnPageTransition(
       animation: animation,
       overleafColor: overleafColor,
+      strokeColor: strokeColor,
+      strokeWidth: strokeWidth,
       animationTransitionPoint: transitionPoint,
       direction: direction,
       child: child,

@@ -20,6 +20,8 @@ class TurnPageRoute<T> extends PageRoute<T> {
     RouteSettings? settings,
     required this.builder,
     this.overleafColor = defaultOverleafColor,
+    this.strokeColor = defaultStrokeColor,
+    this.strokeWidth = defaultStrokeWidth,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
@@ -39,6 +41,10 @@ class TurnPageRoute<T> extends PageRoute<T> {
   /// The color of the page backsides.
   /// Default color is [Colors.grey].
   final Color overleafColor;
+
+  final Color strokeColor;
+
+  final double strokeWidth;
 
   @Deprecated('Use animationTransitionPoint instead')
   final double? turningPoint;
@@ -92,6 +98,8 @@ class TurnPageRoute<T> extends PageRoute<T> {
     return TurnPageTransition(
       animation: animation,
       overleafColor: overleafColor,
+      strokeColor: strokeColor,
+      strokeWidth: strokeWidth,
       animationTransitionPoint: transitionPoint,
       direction: direction,
       child: child,

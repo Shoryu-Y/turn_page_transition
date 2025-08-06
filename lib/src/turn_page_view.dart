@@ -1,3 +1,5 @@
+import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
@@ -16,6 +18,8 @@ class TurnPageView extends StatefulWidget {
     required this.itemCount,
     required this.itemBuilder,
     this.overleafColorBuilder,
+    this.strokeColorBuilder,
+    this.strokeWidthBuilder,
     this.animationTransitionPoint = defaultAnimationTransitionPoint,
     this.useOnTap = true,
     this.useOnSwipe = true,
@@ -36,6 +40,10 @@ class TurnPageView extends StatefulWidget {
 
   /// A builder function that returns the overleaf color for each page.
   final Color Function(int index)? overleafColorBuilder;
+
+  final Color Function(int index)? strokeColorBuilder;
+
+  final double Function(int index)? strokeWidthBuilder;
 
   /// The point that behavior of the turn-page-animation changes.
   /// This value must be 0 <= animationTransitionPoint < 1.
@@ -92,6 +100,8 @@ class _TurnPageViewState extends State<TurnPageView>
             animation: animation,
             overleafColor: widget.overleafColorBuilder?.call(pageIndex) ??
                 defaultOverleafColor,
+            strokeColor: widget.strokeColorBuilder?.call(pageIndex) ?? defaultStrokeColor,
+            strokeWidth: widget.strokeWidthBuilder?.call(pageIndex) ?? defaultStrokeWidth,
             animationTransitionPoint: widget.animationTransitionPoint,
             direction: widget.controller.direction,
             child: child ?? page,

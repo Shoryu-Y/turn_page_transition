@@ -20,6 +20,8 @@ import 'package:turn_page_transition/src/turn_page_transitions_builder.dart';
 class TurnPageTransitionsTheme extends PageTransitionsTheme {
   const TurnPageTransitionsTheme({
     this.overleafColor = defaultOverleafColor,
+    this.strokeColor = defaultStrokeColor,
+    this.strokeWidth = defaultStrokeWidth,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
@@ -28,6 +30,10 @@ class TurnPageTransitionsTheme extends PageTransitionsTheme {
   /// The color of page backsides
   /// default Color is [Colors.grey]
   final Color overleafColor;
+
+  final Color strokeColor;
+
+  final double strokeWidth;
 
   /// The point at which the page-turning animation behavior changes.
   /// This value must be between 0 and 1 (0 <= turningPoint < 1).
@@ -43,6 +49,8 @@ class TurnPageTransitionsTheme extends PageTransitionsTheme {
 
   PageTransitionsBuilder get _builder => TurnPageTransitionsBuilder(
         overleafColor: overleafColor,
+        strokeColor: strokeColor,
+        strokeWidth: strokeWidth,
         animationTransitionPoint: animationTransitionPoint ?? turningPoint,
         direction: direction,
       );
