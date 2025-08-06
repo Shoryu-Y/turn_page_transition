@@ -16,8 +16,8 @@ class TurnPageView extends StatefulWidget {
     required this.itemCount,
     required this.itemBuilder,
     this.overleafColorBuilder,
-    this.strokeColorBuilder,
-    this.strokeWidthBuilder,
+    this.overleafBorderColorBuilder,
+    this.overleafBorderWidthBuilder,
     this.animationTransitionPoint = defaultAnimationTransitionPoint,
     this.useOnTap = true,
     this.useOnSwipe = true,
@@ -39,13 +39,13 @@ class TurnPageView extends StatefulWidget {
   /// A builder function that returns the overleaf color for each page.
   final Color Function(int index)? overleafColorBuilder;
 
-  /// A builder function that returns the stroke color for each page.
-  /// If null, uses the default stroke color.
-  final Color Function(int index)? strokeColorBuilder;
+  /// A builder function that returns the overleaf border color for each page.
+  /// If null, uses the default overleaf border color.
+  final Color Function(int index)? overleafBorderColorBuilder;
 
-  /// A builder function that returns the stroke width for each page.
-  /// If null, uses the default stroke width.
-  final double Function(int index)? strokeWidthBuilder;
+  /// A builder function that returns the overleaf border width for each page.
+  /// If null, uses the default overleaf border width.
+  final double Function(int index)? overleafBorderWidthBuilder;
 
   /// The point that behavior of the turn-page-animation changes.
   /// This value must be 0 <= animationTransitionPoint < 1.
@@ -102,10 +102,12 @@ class _TurnPageViewState extends State<TurnPageView>
             animation: animation,
             overleafColor: widget.overleafColorBuilder?.call(pageIndex) ??
                 defaultOverleafColor,
-            strokeColor: widget.strokeColorBuilder?.call(pageIndex) ??
-                defaultStrokeColor,
-            strokeWidth: widget.strokeWidthBuilder?.call(pageIndex) ??
-                defaultStrokeWidth,
+            overleafBorderColor:
+                widget.overleafBorderColorBuilder?.call(pageIndex) ??
+                    defaultOverleafBorderColor,
+            overleafBorderWidth:
+                widget.overleafBorderWidthBuilder?.call(pageIndex) ??
+                    defaultOverleafBorderWidth,
             animationTransitionPoint: widget.animationTransitionPoint,
             direction: widget.controller.direction,
             child: child ?? page,

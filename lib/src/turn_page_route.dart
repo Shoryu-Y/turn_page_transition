@@ -20,8 +20,8 @@ class TurnPageRoute<T> extends PageRoute<T> {
     RouteSettings? settings,
     required this.builder,
     this.overleafColor = defaultOverleafColor,
-    this.strokeColor = defaultStrokeColor,
-    this.strokeWidth = defaultStrokeWidth,
+    this.overleafBorderColor = defaultOverleafBorderColor,
+    this.overleafBorderWidth = defaultOverleafBorderWidth,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
@@ -42,13 +42,13 @@ class TurnPageRoute<T> extends PageRoute<T> {
   /// Default color is [Colors.grey].
   final Color overleafColor;
 
-  /// The color of the stroke line that appears on the page edge during transition
+  /// The color of the overleaf border that appears on the page edge during transition
   /// Default color is [Colors.black].
-  final Color strokeColor;
+  final Color overleafBorderColor;
 
-  /// The width of the stroke line that appears on the page edge during transition
+  /// The width of the overleaf border that appears on the page edge during transition
   /// Default value is 2.0
-  final double strokeWidth;
+  final double overleafBorderWidth;
 
   @Deprecated('Use animationTransitionPoint instead')
   final double? turningPoint;
@@ -102,8 +102,8 @@ class TurnPageRoute<T> extends PageRoute<T> {
     return TurnPageTransition(
       animation: animation,
       overleafColor: overleafColor,
-      strokeColor: strokeColor,
-      strokeWidth: strokeWidth,
+      overleafBorderColor: overleafBorderColor,
+      overleafBorderWidth: overleafBorderWidth,
       animationTransitionPoint: transitionPoint,
       direction: direction,
       child: child,
