@@ -1,5 +1,3 @@
-import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
-
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
