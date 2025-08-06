@@ -1,3 +1,7 @@
+## 0.5.0
+- allow to change overleaf border color [@mariovtor](https://github.com/mariovtor) - [#17](https://github.com/Shoryu-Y/turn_page_transition/pull/17)
+- Add customizable strokeColor and strokeWidth properties for page edge styling
+
 ## 0.4.0
 - Rebuild on itemBuilder change - onSwipe and onTap callbacks [@soheilqk][] - [#8](https://github.com/Shoryu-Y/turn_page_transition/pull/8)
 - Example is not working. so I modified it. [@b3lon9][] - [#11](https://github.com/Shoryu-Y/turn_page_transition/pull/11)
