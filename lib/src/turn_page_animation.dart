@@ -9,6 +9,7 @@ class TurnPageAnimation extends StatelessWidget {
     required this.animation,
     required this.overleafColor,
     required this.overleafBorderColor,
+    required this.overleafBorderWidth,
     this.animationTransitionPoint,
     this.direction = TurnDirection.rightToLeft,
     required this.child,
@@ -27,9 +28,11 @@ class TurnPageAnimation extends StatelessWidget {
   /// Default color is [Colors.grey].
   final Color overleafColor;
 
-  /// The color of the backside border of the pages.
-  /// Default color is [Colors.black].
+  /// The color of the overleaf border that appears on the page edge during transition
   final Color overleafBorderColor;
+
+  /// The width of the overleaf border that appears on the page edge during transition
+  final double overleafBorderWidth;
 
   /// The point that behavior of the turn-page-animation changes.
   /// This value must be 0 <= animationTransitionPoint < 1.
@@ -54,7 +57,8 @@ class TurnPageAnimation extends StatelessWidget {
       foregroundPainter: _OverleafPainter(
         animation: animation,
         color: overleafColor,
-        borderColor: overleafBorderColor,
+        overleafBorderColor: overleafBorderColor,
+        overleafBorderWidth: overleafBorderWidth,
         animationTransitionPoint: transitionPoint,
         direction: direction,
       ),
@@ -186,9 +190,10 @@ class _OverleafPainter extends CustomPainter {
   const _OverleafPainter({
     required this.animation,
     required this.color,
+    required this.overleafBorderColor,
+    required this.overleafBorderWidth,
     required this.animationTransitionPoint,
     required this.direction,
-    required this.borderColor,
   });
 
   /// The animation that controls the page-turning effect.
@@ -197,8 +202,11 @@ class _OverleafPainter extends CustomPainter {
   /// The color of the backside of the pages.
   final Color color;
 
-  /// The color of the page border
-  final Color borderColor;
+  /// The color of the overleaf border that appears on the page edge during transition
+  final Color overleafBorderColor;
+
+  /// The width of the overleaf border that appears on the page edge during transition
+  final double overleafBorderWidth;
 
   /// The point at which the page-turning animation behavior changes.
   /// This value must be between 0 and 1 (0 <= animationTransitionPoint < 1).
@@ -318,9 +326,9 @@ class _OverleafPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final linePaint = Paint()
-      ..color = borderColor
+      ..color = overleafBorderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = overleafBorderWidth;
 
     canvas
       ..drawPath(path, fillPaint)
