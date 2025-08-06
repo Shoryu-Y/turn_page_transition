@@ -42,8 +42,12 @@ class TurnPageRoute<T> extends PageRoute<T> {
   /// Default color is [Colors.grey].
   final Color overleafColor;
 
+  /// The color of the stroke line that appears on the page edge during transition
+  /// Default color is [Colors.black].
   final Color strokeColor;
 
+  /// The width of the stroke line that appears on the page edge during transition
+  /// Default value is 2.0
   final double strokeWidth;
 
   @Deprecated('Use animationTransitionPoint instead')

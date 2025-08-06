@@ -30,7 +30,12 @@ class TurnPageTransition extends StatelessWidget {
   /// Default color is [Colors.grey].
   final Color overleafColor;
 
+  /// The color of the stroke line that appears on the page edge during transition
+  /// Default color is [Colors.black].
   final Color strokeColor;
+
+  /// The width of the stroke line that appears on the page edge during transition
+  /// Default value is 2.0
   final double strokeWidth;
 
   /// The point at which the page-turning animation behavior changes.
@@ -178,7 +183,10 @@ class _OverleafPainter extends CustomPainter with OverleafPainterCalculator {
   /// The color of the backside of the pages.
   final Color color;
 
+  /// The color of the stroke line that appears on the page edge during transition
   final Color strokeColor;
+
+  /// The width of the stroke line that appears on the page edge during transition
   final double strokeWidth;
 
   /// The point at which the page-turning animation behavior changes.

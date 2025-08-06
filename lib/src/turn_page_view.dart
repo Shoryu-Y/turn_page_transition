@@ -39,8 +39,12 @@ class TurnPageView extends StatefulWidget {
   /// A builder function that returns the overleaf color for each page.
   final Color Function(int index)? overleafColorBuilder;
 
+  /// A builder function that returns the stroke color for each page.
+  /// If null, uses the default stroke color.
   final Color Function(int index)? strokeColorBuilder;
 
+  /// A builder function that returns the stroke width for each page.
+  /// If null, uses the default stroke width.
   final double Function(int index)? strokeWidthBuilder;
 
   /// The point that behavior of the turn-page-animation changes.
@@ -98,8 +102,10 @@ class _TurnPageViewState extends State<TurnPageView>
             animation: animation,
             overleafColor: widget.overleafColorBuilder?.call(pageIndex) ??
                 defaultOverleafColor,
-            strokeColor: widget.strokeColorBuilder?.call(pageIndex) ?? defaultStrokeColor,
-            strokeWidth: widget.strokeWidthBuilder?.call(pageIndex) ?? defaultStrokeWidth,
+            strokeColor: widget.strokeColorBuilder?.call(pageIndex) ??
+                defaultStrokeColor,
+            strokeWidth: widget.strokeWidthBuilder?.call(pageIndex) ??
+                defaultStrokeWidth,
             animationTransitionPoint: widget.animationTransitionPoint,
             direction: widget.controller.direction,
             child: child ?? page,

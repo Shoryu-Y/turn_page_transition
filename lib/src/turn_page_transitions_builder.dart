@@ -14,8 +14,10 @@ class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
 
   final Color overleafColor;
 
+  /// The color of the stroke line that appears on the page edge during transition
   final Color strokeColor;
 
+  /// The width of the stroke line that appears on the page edge during transition
   final double strokeWidth;
 
   /// The point at which the page-turning animation behavior changes.

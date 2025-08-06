@@ -31,8 +31,12 @@ class TurnPageTransitionsTheme extends PageTransitionsTheme {
   /// default Color is [Colors.grey]
   final Color overleafColor;
 
+  /// The color of the stroke line that appears on the page edge during transition
+  /// default Color is [Colors.black]
   final Color strokeColor;
 
+  /// The width of the stroke line that appears on the page edge during transition
+  /// default value is 2.0
   final double strokeWidth;
 
   /// The point at which the page-turning animation behavior changes.
