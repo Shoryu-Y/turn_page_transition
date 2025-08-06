@@ -20,6 +20,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         pageTransitionsTheme: const TurnPageTransitionsTheme(
           overleafColor: Colors.grey,
+          strokeColor: Colors.black,
+          strokeWidth: 2,
           animationTransitionPoint: 0.5,
         ),
         primarySwatch: Colors.blue,
