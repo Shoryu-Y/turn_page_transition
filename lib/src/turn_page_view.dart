@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:turn_page_transition/src/const.dart';
+import 'package:turn_page_transition/src/turn_corner.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_animation.dart';
 
@@ -109,7 +110,7 @@ class _TurnPageViewState extends State<TurnPageView>
                 widget.overleafBorderWidthBuilder?.call(pageIndex) ??
                     defaultOverleafBorderWidth,
             animationTransitionPoint: widget.animationTransitionPoint,
-            direction: widget.controller.direction,
+            startCorner: widget.controller.startCorner,
             child: child ?? page,
           ),
         );
@@ -174,8 +175,11 @@ class _TurnPageViewState extends State<TurnPageView>
 class TurnPageController extends ChangeNotifier {
   final int initialPage;
 
-  /// The direction in which the pages are turned.
+  @Deprecated("Use [turnCorner] instead")
   final TurnDirection direction;
+
+  /// The corner where the turn should start
+  final TurnCorner startCorner;
 
   /// The threshold value is used to determine whether a page turn should be
   /// completed or reverted based on the percentage of the swipe gesture.
@@ -186,10 +190,13 @@ class TurnPageController extends ChangeNotifier {
 
   TurnPageController({
     this.initialPage = 0,
+    @Deprecated("Use turnCorner instead")
     this.direction = TurnDirection.rightToLeft,
+    TurnCorner? startCorner,
     this.thresholdValue = _defaultThresholdValue,
     this.duration = defaultTransitionDuration,
-  }) : assert(0 <= thresholdValue && thresholdValue <= 1);
+  })  : startCorner = startCorner ?? direction.toTurnCorner(),
+        assert(0 <= thresholdValue && thresholdValue <= 1);
 
   void Function(bool isTurnForward)? onTap;
 
@@ -231,16 +238,12 @@ class TurnPageController extends ChangeNotifier {
     final isLeftSideTapped =
         details.localPosition.dx <= constraints.maxWidth / 2;
 
-    switch (direction) {
-      case TurnDirection.rightToLeft:
-        isLeftSideTapped ? previousPage() : nextPage();
-        onTap?.call(!isLeftSideTapped);
-        break;
-
-      case TurnDirection.leftToRight:
-        isLeftSideTapped ? nextPage() : previousPage();
-        onTap?.call(isLeftSideTapped);
-        break;
+    if (startCorner.isRight) {
+      isLeftSideTapped ? previousPage() : nextPage();
+      onTap?.call(!isLeftSideTapped);
+    } else {
+      isLeftSideTapped ? nextPage() : previousPage();
+      onTap?.call(isLeftSideTapped);
     }
   }
 
@@ -250,13 +253,10 @@ class TurnPageController extends ChangeNotifier {
   }) {
     final width = constraints.maxWidth;
     late final double delta;
-    switch (direction) {
-      case TurnDirection.rightToLeft:
-        delta = -(details.primaryDelta ?? 0) / width;
-        break;
-      case TurnDirection.leftToRight:
-        delta = (details.primaryDelta ?? 0) / width;
-        break;
+    if (startCorner.isRight) {
+      delta = -(details.primaryDelta ?? 0) / width;
+    } else {
+      delta = (details.primaryDelta ?? 0) / width;
     }
 
     if (this._isTurnForward == null) {

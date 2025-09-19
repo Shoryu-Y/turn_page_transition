@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:turn_page_transition/src/turn_corner.dart';
 import 'package:turn_page_transition/src/turn_direction.dart';
 import 'package:turn_page_transition/src/turn_page_transition.dart';
 
 class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
-  const TurnPageTransitionsBuilder({
+  TurnPageTransitionsBuilder({
     required this.overleafColor,
     required this.overleafBorderColor,
     required this.overleafBorderWidth,
     @Deprecated('Use animationTransitionPoint instead') this.turningPoint,
     this.animationTransitionPoint,
+    @Deprecated("Use turnCorner instead")
     this.direction = TurnDirection.rightToLeft,
-  });
+    TurnCorner? startCorner,
+  }) : startCorner = startCorner ?? direction.toTurnCorner();
 
   final Color overleafColor;
 
@@ -29,8 +32,11 @@ class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
   /// This value must be 0 <= animationTransitionPoint < 1.
   final double? animationTransitionPoint;
 
-  /// The direction in which the pages are turned.
+  @Deprecated("Use turnCorner instead")
   final TurnDirection direction;
+
+  /// The corner where the turn should start
+  final TurnCorner startCorner;
 
   @override
   Widget buildTransitions<T>(
@@ -48,7 +54,7 @@ class TurnPageTransitionsBuilder extends PageTransitionsBuilder {
       overleafBorderColor: overleafBorderColor,
       overleafBorderWidth: overleafBorderWidth,
       animationTransitionPoint: transitionPoint,
-      direction: direction,
+      startCorner: startCorner,
       child: child,
     );
   }
